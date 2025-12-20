@@ -1,29 +1,29 @@
-package com.newshub.NewsHub.dto;
+package com.newshub.NewsHub.dto.userDTO;
 
+import com.newshub.NewsHub.model.Category;
 import com.newshub.NewsHub.model.UserStatus;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
-/**
- * DTO для предоставления пользователя
- */
-public class UserDTO {
+public class UserResponseDTO {
 
     private Long id;
     private String username;
     private String email;
     private UserStatus status;
+    private Set<Category> categories = new HashSet<Category>();
 
-    public UserDTO(Long id, String username, String email, UserStatus status) {
+    public UserResponseDTO() {
+    }
+
+    public UserResponseDTO(Long id, String username, String email, UserStatus status, Set<Category> categories) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.status = status;
-    }
-
-    public UserDTO() {
+        this.categories = categories;
     }
 
     public Long getId() {
@@ -58,26 +58,35 @@ public class UserDTO {
         this.status = status;
     }
 
+    public Set<Category> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Set<Category> categories) {
+        this.categories = categories;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UserDTO userDTO = (UserDTO) o;
-        return Objects.equals(id, userDTO.id) && Objects.equals(username, userDTO.username);
+        UserResponseDTO that = (UserResponseDTO) o;
+        return Objects.equals(username, that.username);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username);
+        return Objects.hashCode(username);
     }
 
     @Override
     public String toString() {
-        return "UserDTO{" +
+        return "UserResponseDTO{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", status=" + status +
+                ", categories=" + categories +
                 '}';
     }
 }
