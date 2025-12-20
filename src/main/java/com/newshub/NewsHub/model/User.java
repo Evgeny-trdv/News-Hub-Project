@@ -31,7 +31,7 @@ public class User {
     @CollectionTable(name = "user_interests")
     @Column(name = "interests")
     @Enumerated(EnumType.STRING)
-    private Set<Interest> interests = new HashSet<>();
+    private Set<Category> categories = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -53,12 +53,12 @@ public class User {
     public User() {
     }
 
-    public User(Long id, String username, String email, String password) {
-        this.id = id;
+    public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.status = UserStatus.ACTIVE;
+        this.categories = new HashSet<>();
         this.favoriteArticles = new HashSet<>();
         this.userScore = 0;
     }
@@ -68,9 +68,9 @@ public class User {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
 
-        if (this.interests.isEmpty()) {
-            this.interests = new HashSet<>();
-            this.interests.add(Interest.GENERAL);
+        if (this.categories.isEmpty()) {
+            this.categories = new HashSet<>();
+            this.categories.add(Category.GENERAL);
         }
 
         if (this.status == null) {
@@ -123,12 +123,12 @@ public class User {
         this.status = status;
     }
 
-    public Set<Interest> getInterests() {
-        return interests;
+    public Set<Category> getInterests() {
+        return categories;
     }
 
-    public void setInterests(Set<Interest> interests) {
-        this.interests = interests;
+    public void setInterests(Set<Category> categories) {
+        this.categories = categories;
     }
 
     public Set<NewsArticle> getFavoriteArticles() {
@@ -163,6 +163,21 @@ public class User {
         this.userScore = userScore;
     }
 
+    /**
+     * вспомогательные методы
+     * @param category
+     */
+
+    public void addCategory(Category category) {
+        if (this.categories.contains(category)) {
+            System.out.println("category is contains");
+        }
+        if (category == null) {
+            System.out.println("category is null");
+        }
+        this.categories.add(category);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -184,7 +199,7 @@ public class User {
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", status=" + status +
-                ", interests=" + interests +
+                ", interests=" + categories +
                 ", favoriteArticles=" + favoriteArticles +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +

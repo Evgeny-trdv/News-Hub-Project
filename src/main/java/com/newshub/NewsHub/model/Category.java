@@ -1,6 +1,6 @@
 package com.newshub.NewsHub.model;
 
-public enum Interest {
+public enum Category {
     GENERAL,
     SPORT,
     OTHER
