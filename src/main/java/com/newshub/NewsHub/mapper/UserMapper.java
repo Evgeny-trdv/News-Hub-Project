@@ -1,6 +1,6 @@
 package com.newshub.NewsHub.mapper;
 
-import com.newshub.NewsHub.dto.userDTO.UserCreateOrUpdateDTO;
+import com.newshub.NewsHub.dto.userDTO.UserRequestDTO;
 import com.newshub.NewsHub.dto.userDTO.UserResponseDTO;
 import com.newshub.NewsHub.model.User;
 import org.springframework.stereotype.Component;
@@ -12,28 +12,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
-    public UserCreateOrUpdateDTO toUserCreateOrUpdateDTO(User user) {
-        if (user == null) {
-            return null;
-        }
-
-        UserCreateOrUpdateDTO userCreateOrUpdateDTO = new UserCreateOrUpdateDTO();
-        userCreateOrUpdateDTO.setUsername(user.getUsername());
-        userCreateOrUpdateDTO.setEmail(user.getEmail());
-        userCreateOrUpdateDTO.setStatus(user.getStatus());
-        return userCreateOrUpdateDTO;
-    }
-
-    public User toUser(UserCreateOrUpdateDTO userCreateOrUpdateDTO) {
-        if (userCreateOrUpdateDTO == null) {
+    public User toUserEntity(UserRequestDTO userRequestDTO) {
+        if (userRequestDTO == null) {
             return null;
         }
 
         User user = new User();
-        user.setUsername(userCreateOrUpdateDTO.getUsername());
-        user.setEmail(userCreateOrUpdateDTO.getEmail());
-        user.setPassword(userCreateOrUpdateDTO.getPassword());
-        user.setStatus(userCreateOrUpdateDTO.getStatus());
+        user.setUsername(userRequestDTO.getUsername());
+        user.setEmail(userRequestDTO.getEmail());
+        user.setPassword(userRequestDTO.getPassword());
+        user.setStatus(userRequestDTO.getStatus());
+
+        if (userRequestDTO.getCategories() != null) {
+            user.setCategories(userRequestDTO.getCategories());
+        }
         return user;
     }
 
@@ -47,22 +39,9 @@ public class UserMapper {
         userResponseDTO.setUsername(user.getUsername());
         userResponseDTO.setEmail(user.getEmail());
         userResponseDTO.setStatus(user.getStatus());
-        userResponseDTO.setCategories(user.getInterests());
+        userResponseDTO.setCreatedAt(user.getCreatedAt());
+        userResponseDTO.setCategories(user.getCategories());
         return userResponseDTO;
-    }
-
-    public User toUser(UserResponseDTO userResponseDTO) {
-        if (userResponseDTO == null) {
-            return null;
-        }
-
-        User user = new User();
-        user.setId(userResponseDTO.getId());
-        user.setUsername(userResponseDTO.getUsername());
-        user.setEmail(userResponseDTO.getEmail());
-        user.setStatus(userResponseDTO.getStatus());
-        user.setInterests(userResponseDTO.getCategories());
-        return user;
     }
 
 }

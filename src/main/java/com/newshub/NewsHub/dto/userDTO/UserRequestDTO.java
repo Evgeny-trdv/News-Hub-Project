@@ -1,27 +1,35 @@
 package com.newshub.NewsHub.dto.userDTO;
 
+import com.newshub.NewsHub.model.Category;
 import com.newshub.NewsHub.model.UserStatus;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * DTO для создания или обновления пользователя
  */
-public class UserCreateOrUpdateDTO {
+public class UserRequestDTO {
 
     private String username;
     private String email;
     private String password;
     private UserStatus status;
 
-    public UserCreateOrUpdateDTO(String username, String email, String password, UserStatus status) {
+    @Enumerated(EnumType.STRING)
+    private Set<Category> categories;
+
+    public UserRequestDTO(String username, String email, String password, UserStatus status) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.status = status;
     }
 
-    public UserCreateOrUpdateDTO() {
+    public UserRequestDTO() {
     }
 
     public String getUsername() {
@@ -56,11 +64,19 @@ public class UserCreateOrUpdateDTO {
         this.status = status;
     }
 
+    public Set<Category> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(Set<Category> categories) {
+        this.categories = categories;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UserCreateOrUpdateDTO that = (UserCreateOrUpdateDTO) o;
+        UserRequestDTO that = (UserRequestDTO) o;
         return Objects.equals(username, that.username);
     }
 
@@ -71,7 +87,7 @@ public class UserCreateOrUpdateDTO {
 
     @Override
     public String toString() {
-        return "UserCreateOrUpdateDTO{" +
+        return "UserRequestDTO{" +
                 "username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +

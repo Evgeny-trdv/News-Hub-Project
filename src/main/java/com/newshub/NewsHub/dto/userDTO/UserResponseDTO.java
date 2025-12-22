@@ -3,6 +3,7 @@ package com.newshub.NewsHub.dto.userDTO;
 import com.newshub.NewsHub.model.Category;
 import com.newshub.NewsHub.model.UserStatus;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -13,17 +14,19 @@ public class UserResponseDTO {
     private String username;
     private String email;
     private UserStatus status;
-    private Set<Category> categories = new HashSet<Category>();
+    private Set<Category> categories;
+    private LocalDateTime createdAt;
 
     public UserResponseDTO() {
     }
 
-    public UserResponseDTO(Long id, String username, String email, UserStatus status, Set<Category> categories) {
+    public UserResponseDTO(Long id, String username, String email, UserStatus status, Set<Category> categories, LocalDateTime createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.status = status;
         this.categories = categories;
+        this.createdAt = createdAt;
     }
 
     public Long getId() {
@@ -64,6 +67,14 @@ public class UserResponseDTO {
 
     public void setCategories(Set<Category> categories) {
         this.categories = categories;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override
