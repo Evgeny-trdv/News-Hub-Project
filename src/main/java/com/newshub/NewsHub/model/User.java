@@ -123,11 +123,11 @@ public class User {
         this.status = status;
     }
 
-    public Set<Category> getInterests() {
+    public Set<Category> getCategories() {
         return categories;
     }
 
-    public void setInterests(Set<Category> categories) {
+    public void setCategories(Set<Category> categories) {
         this.categories = categories;
     }
 

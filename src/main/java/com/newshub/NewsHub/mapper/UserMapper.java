@@ -1,6 +1,7 @@
 package com.newshub.NewsHub.mapper;
 
-import com.newshub.NewsHub.dto.UserDTO;
+import com.newshub.NewsHub.dto.userDTO.UserRequestDTO;
+import com.newshub.NewsHub.dto.userDTO.UserResponseDTO;
 import com.newshub.NewsHub.model.User;
 import org.springframework.stereotype.Component;
 
@@ -11,17 +12,36 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
-    public UserDTO UserToUserDTO(User user) {
+    public User toUserEntity(UserRequestDTO userRequestDTO) {
+        if (userRequestDTO == null) {
+            return null;
+        }
+
+        User user = new User();
+        user.setUsername(userRequestDTO.getUsername());
+        user.setEmail(userRequestDTO.getEmail());
+        user.setPassword(userRequestDTO.getPassword());
+        user.setStatus(userRequestDTO.getStatus());
+
+        if (userRequestDTO.getCategories() != null) {
+            user.setCategories(userRequestDTO.getCategories());
+        }
+        return user;
+    }
+
+    public UserResponseDTO toUserResponseDTO(User user) {
         if (user == null) {
             return null;
         }
 
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setUsername(user.getUsername());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setStatus(user.getStatus());
-        return userDTO;
+        UserResponseDTO userResponseDTO = new UserResponseDTO();
+        userResponseDTO.setId(user.getId());
+        userResponseDTO.setUsername(user.getUsername());
+        userResponseDTO.setEmail(user.getEmail());
+        userResponseDTO.setStatus(user.getStatus());
+        userResponseDTO.setCreatedAt(user.getCreatedAt());
+        userResponseDTO.setCategories(user.getCategories());
+        return userResponseDTO;
     }
 
 }
