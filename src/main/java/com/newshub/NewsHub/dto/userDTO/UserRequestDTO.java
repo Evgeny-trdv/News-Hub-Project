@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * DTO для создания или обновления пользователя
+ * DTO пользователя для создания или обновления пользователя (для передачи)
  */
 public class UserRequestDTO {
 

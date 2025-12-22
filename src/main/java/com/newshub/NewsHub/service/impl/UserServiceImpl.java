@@ -11,6 +11,7 @@ import com.newshub.NewsHub.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +70,10 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserResponseDTO(user);
     }
 
+    /**
+     * Метод получения списка всех пользователей
+     * @return список пользователей (user)
+     */
     @Override
     public List<UserResponseDTO> getAllUsers() {
         List<User> users = userRepository.findAll();
@@ -86,12 +91,22 @@ public class UserServiceImpl implements UserService {
         return userResponseDTOs;
     }
 
+    /**
+     * Метод получения списка всех пользователей через пагинацию (по странично)
+     * @param pageable объекст постраничного запроса
+     * @return список пользователей (user)
+     */
     @Override
     public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
         Page<User> users = userRepository.findAll(pageable);
         return users.map(userMapper::toUserResponseDTO);
     }
 
+    /**
+     * Метод создания (сохранения) пользователя в базу данных
+     * @param userRequestDTO DTO пользователя для создания/обновления
+     * @return DTO пользователя для получения ответа
+     */
     @Override
     @Transactional
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
@@ -113,6 +128,9 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userMapper.toUserEntity(userRequestDTO);
         userRepository.save(savedUser);
+
+        logger.info("User {} saved to database", savedUser);
+
         return userMapper.toUserResponseDTO(savedUser);
     }
 

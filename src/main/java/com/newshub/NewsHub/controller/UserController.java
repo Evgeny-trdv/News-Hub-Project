@@ -36,8 +36,8 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    public List<UserResponseDTO> getAllUsers(@PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return userService.getAllUsers();
+    public List<UserResponseDTO> getAllUsers(@PageableDefault(page = 0, size = 3, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return userService.getAllUsers(pageable).getContent();
     }
 
     @PostMapping
