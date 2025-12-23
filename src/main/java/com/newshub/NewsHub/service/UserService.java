@@ -17,8 +17,8 @@ public interface UserService {
 
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO);
 
-//    public UserDTO updateUser(User user);
+    public UserResponseDTO updateUser(Long userId, UserRequestDTO userRequestDTO);
 
-//    public void deleteUser(Long id);
+    public void deleteUser(Long id);
 
 }

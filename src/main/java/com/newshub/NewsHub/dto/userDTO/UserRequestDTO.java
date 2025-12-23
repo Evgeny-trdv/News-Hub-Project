@@ -17,16 +17,14 @@ public class UserRequestDTO {
     private String username;
     private String email;
     private String password;
-    private UserStatus status;
 
     @Enumerated(EnumType.STRING)
     private Set<Category> categories;
 
-    public UserRequestDTO(String username, String email, String password, UserStatus status) {
+    public UserRequestDTO(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.status = status;
     }
 
     public UserRequestDTO() {
@@ -56,14 +54,6 @@ public class UserRequestDTO {
         this.password = password;
     }
 
-    public UserStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(UserStatus status) {
-        this.status = status;
-    }
-
     public Set<Category> getCategories() {
         return categories;
     }
@@ -91,7 +81,6 @@ public class UserRequestDTO {
                 "username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
-                ", status=" + status +
                 '}';
     }
 }

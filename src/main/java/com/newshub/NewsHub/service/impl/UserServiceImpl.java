@@ -8,6 +8,10 @@ import com.newshub.NewsHub.mapper.UserMapper;
 import com.newshub.NewsHub.model.User;
 import com.newshub.NewsHub.repository.UserRepository;
 import com.newshub.NewsHub.service.UserService;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.internal.SessionImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -132,6 +136,68 @@ public class UserServiceImpl implements UserService {
         logger.info("User {} saved to database", savedUser);
 
         return userMapper.toUserResponseDTO(savedUser);
+    }
+
+
+    /**
+     * Метод обновления данных пользователя
+     * @param userId id пользователя
+     * @param userRequestDTO DTO пользователя для создания/обновления
+     * @return DTO пользователя для получения ответа
+     */
+    @Override
+    @Transactional
+    public UserResponseDTO updateUser(Long userId, UserRequestDTO userRequestDTO) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        if (userRequestDTO.getUsername() != null &&
+                userRepository.existsByUsername(userRequestDTO.getUsername())) {
+            throw new BusinessException("Username already exists" + userRequestDTO.getUsername());
+        }
+
+        if (userRequestDTO.getEmail() != null &&
+                userRepository.existsByEmail(userRequestDTO.getEmail())) {
+            throw new BusinessException("Email already exists" + userRequestDTO.getEmail());
+        }
+
+        if (!validateEmail(userRequestDTO.getEmail())) {
+            throw new BusinessException("Email is not valid" + userRequestDTO.getEmail());
+        }
+
+        if (userRequestDTO.getUsername() != null) {
+            user.setUsername(userRequestDTO.getUsername());
+        }
+
+        if (userRequestDTO.getEmail() != null) {
+            user.setEmail(userRequestDTO.getEmail());
+        }
+
+        if (userRequestDTO.getPassword() != null) {
+            user.setPassword(userRequestDTO.getPassword());
+        }
+
+        if (userRequestDTO.getCategories() != null) {
+            user.setCategories(userRequestDTO.getCategories());
+        }
+
+        userRepository.save(user);
+        return userMapper.toUserResponseDTO(user);
+    }
+
+    /**
+     * Метод удаления пользователя из базы данных
+     * @param userId id пользователя
+     */
+    @Override
+    @Transactional
+    public void deleteUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("User", "id", userId);
+        }
+
+        logger.info("User {} deleted to database", userId);
+        userRepository.deleteById(userId);
     }
 
     private boolean validateEmail(String email) {
