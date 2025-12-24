@@ -6,20 +6,18 @@ import com.newshub.NewsHub.exception.BusinessException;
 import com.newshub.NewsHub.exception.ResourceNotFoundException;
 import com.newshub.NewsHub.mapper.UserMapper;
 import com.newshub.NewsHub.model.User;
+import com.newshub.NewsHub.model.UserStatus;
 import com.newshub.NewsHub.repository.UserRepository;
 import com.newshub.NewsHub.service.UserService;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.internal.SessionImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -181,6 +179,7 @@ public class UserServiceImpl implements UserService {
             user.setCategories(userRequestDTO.getCategories());
         }
 
+        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         return userMapper.toUserResponseDTO(user);
     }
@@ -198,6 +197,37 @@ public class UserServiceImpl implements UserService {
 
         logger.info("User {} deleted to database", userId);
         userRepository.deleteById(userId);
+    }
+
+    /**
+     * Метод пометки для удаления пользователя
+     * @param userId
+     */
+    @Override
+    @Transactional
+    public void deleteUserWithAbilityReturn(Long userId) {
+
+        User userForDeleted = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        userForDeleted.setStatus(UserStatus.DELETED);
+        userRepository.save(userForDeleted);
+    }
+
+    /**
+     * Метод удаления пользователя из БД по расписанию
+     */
+    @Scheduled(cron = "0 0/1 * * * *")
+    @Transactional
+    public void deleteUserForScheduled() {
+        List<User> listUsersForDeleted = userRepository.listUserForDeleteWithStatusDeleted();
+
+        for (User user : listUsersForDeleted) {
+            logger.info("User {} deleted to database", user.getId());
+            if (user.getUpdatedAt().plusDays(10).isAfter(LocalDateTime.now())) {
+                userRepository.deleteById(user.getId());
+            }
+        }
     }
 
     private boolean validateEmail(String email) {

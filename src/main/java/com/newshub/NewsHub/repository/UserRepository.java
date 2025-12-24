@@ -2,7 +2,9 @@ package com.newshub.NewsHub.repository;
 
 import com.newshub.NewsHub.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -18,4 +20,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     boolean existsById(Long id);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+
+    @Query(value = "SELECT * FROM users WHERE user_status = 'DELETED'", nativeQuery = true)
+    List<User> listUserForDeleteWithStatusDeleted();
 }

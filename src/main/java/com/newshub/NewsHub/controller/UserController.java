@@ -59,9 +59,16 @@ public class UserController {
         userService.deleteUser(userId);
     }
 
+    @DeleteMapping("/del{userId}")
+    @Operation(summary = "Delete the user by userId with ability to return user")
+    public void deleteUserWithAbilityReturn(@PathVariable Long userId) {
+        userService.deleteUserWithAbilityReturn(userId);
+    }
+
     @PutMapping("/{userId}")
     @Operation(summary = "Update the user")
     public UserResponseDTO updateUser(@PathVariable Long userId, @RequestBody UserRequestDTO userRequestDTO) {
         return userService.updateUser(userId, userRequestDTO);
     }
+
 }

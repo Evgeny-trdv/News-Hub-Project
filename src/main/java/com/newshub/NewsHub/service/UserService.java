@@ -20,5 +20,6 @@ public interface UserService {
     public UserResponseDTO updateUser(Long userId, UserRequestDTO userRequestDTO);
 
     public void deleteUser(Long id);
+    public void deleteUserWithAbilityReturn(Long userId);
 
 }
