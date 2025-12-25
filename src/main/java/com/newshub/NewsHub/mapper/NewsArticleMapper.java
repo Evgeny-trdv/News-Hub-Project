@@ -1,7 +1,7 @@
 package com.newshub.NewsHub.mapper;
 
 
-import com.newshub.NewsHub.dto.NewsArticleDTO;
+import com.newshub.NewsHub.dto.articleDTO.NewsArticleResponseDTO;
 import com.newshub.NewsHub.model.NewsArticle;
 import org.springframework.stereotype.Component;
 
@@ -12,19 +12,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class NewsArticleMapper {
 
-    public NewsArticleDTO toNewsArticleDTO(NewsArticle article) {
+    public NewsArticleResponseDTO toNewsArticleDTO(NewsArticle article) {
         if (article == null) {
             return null;
         }
 
-        NewsArticleDTO newsArticleDTO = new NewsArticleDTO();
+        NewsArticleResponseDTO newsArticleResponseDTO = new NewsArticleResponseDTO();
 
-        newsArticleDTO.setId(article.getId());
-        newsArticleDTO.setTitle(article.getTitle());
-        newsArticleDTO.setContent(article.getContent());
-        newsArticleDTO.setAuthor(article.getAuthor());
-        newsArticleDTO.setCategory(article.getCategory());
-        return newsArticleDTO;
+        newsArticleResponseDTO.setId(article.getId());
+        newsArticleResponseDTO.setTitle(article.getTitle());
+        newsArticleResponseDTO.setContent(article.getContent());
+        newsArticleResponseDTO.setAuthor(article.getAuthor());
+        newsArticleResponseDTO.setCategory(article.getCategory());
+        return newsArticleResponseDTO;
 
     }
 }
