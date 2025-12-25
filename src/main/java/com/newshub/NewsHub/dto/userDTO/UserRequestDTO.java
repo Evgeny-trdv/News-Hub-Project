@@ -1,11 +1,7 @@
 package com.newshub.NewsHub.dto.userDTO;
 
 import com.newshub.NewsHub.model.Category;
-import com.newshub.NewsHub.model.UserStatus;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -17,9 +13,7 @@ public class UserRequestDTO {
     private String username;
     private String email;
     private String password;
-
-    @Enumerated(EnumType.STRING)
-    private Set<Category> categories;
+    private Set<String> interests;
 
     public UserRequestDTO(String username, String email, String password) {
         this.username = username;
@@ -54,12 +48,12 @@ public class UserRequestDTO {
         this.password = password;
     }
 
-    public Set<Category> getCategories() {
-        return categories;
+    public Set<String> getInterests() {
+        return interests;
     }
 
-    public void setCategories(Set<Category> categories) {
-        this.categories = categories;
+    public void setInterests(Set<String> interests) {
+        this.interests = interests;
     }
 
     @Override

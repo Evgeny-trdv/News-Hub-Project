@@ -30,8 +30,7 @@ public class User {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_interests")
     @Column(name = "interests")
-    @Enumerated(EnumType.STRING)
-    private Set<Category> categories = new HashSet<>();
+    private Set<String> interests = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -58,7 +57,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.status = UserStatus.ACTIVE;
-        this.categories = new HashSet<>();
+        this.interests = new HashSet<>();
         this.favoriteArticles = new HashSet<>();
         this.userScore = 0;
     }
@@ -68,9 +67,9 @@ public class User {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
 
-        if (this.categories.isEmpty()) {
-            this.categories = new HashSet<>();
-            this.categories.add(Category.GENERAL);
+        if (this.interests.isEmpty()) {
+            this.interests = new HashSet<>();
+            this.interests.add("General");
         }
 
         if (this.status == null) {
@@ -123,12 +122,12 @@ public class User {
         this.status = status;
     }
 
-    public Set<Category> getCategories() {
-        return categories;
+    public Set<String> getInterests() {
+        return interests;
     }
 
-    public void setCategories(Set<Category> categories) {
-        this.categories = categories;
+    public void setInterests(Set<String> categories) {
+        this.interests = categories;
     }
 
     public Set<NewsArticle> getFavoriteArticles() {
@@ -165,17 +164,23 @@ public class User {
 
     /**
      * вспомогательные методы
-     * @param category
+     * @param interest интерес к контексте новостей (спорт, политика и тд.)
      */
+    public void addCategory(String interest) {
+        if (this.interests == null) {
+            this.interests = new HashSet<>();
+        }
+        this.interests.add(interest);
+    }
 
-    public void addCategory(Category category) {
-        if (this.categories.contains(category)) {
-            System.out.println("category is contains");
-        }
-        if (category == null) {
-            System.out.println("category is null");
-        }
-        this.categories.add(category);
+    public void removeCategory(String interest) {
+        this.interests.remove(interest);
+    }
+
+    public boolean hasInterest(String interest) {
+        return this.interests != null &&
+                interest != null &&
+                this.interests.contains(interest);
     }
 
     @Override
@@ -199,7 +204,7 @@ public class User {
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", status=" + status +
-                ", interests=" + categories +
+                ", interests=" + interests +
                 ", favoriteArticles=" + favoriteArticles +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +

@@ -4,7 +4,6 @@ import com.newshub.NewsHub.model.Category;
 import com.newshub.NewsHub.model.UserStatus;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -17,18 +16,18 @@ public class UserResponseDTO {
     private String username;
     private String email;
     private UserStatus status;
-    private Set<Category> categories;
+    private Set<String> interests;
     private LocalDateTime createdAt;
 
     public UserResponseDTO() {
     }
 
-    public UserResponseDTO(Long id, String username, String email, UserStatus status, Set<Category> categories, LocalDateTime createdAt) {
+    public UserResponseDTO(Long id, String username, String email, UserStatus status, Set<String> interests, LocalDateTime createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.status = status;
-        this.categories = categories;
+        this.interests = interests;
         this.createdAt = createdAt;
     }
 
@@ -64,12 +63,12 @@ public class UserResponseDTO {
         this.status = status;
     }
 
-    public Set<Category> getCategories() {
-        return categories;
+    public Set<String> getInterests() {
+        return interests;
     }
 
-    public void setCategories(Set<Category> categories) {
-        this.categories = categories;
+    public void setInterests(Set<String> interests) {
+        this.interests = interests;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -100,7 +99,7 @@ public class UserResponseDTO {
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
                 ", status=" + status +
-                ", categories=" + categories +
+                ", categories=" + interests +
                 '}';
     }
 }

@@ -22,8 +22,8 @@ public class UserMapper {
         user.setEmail(userRequestDTO.getEmail());
         user.setPassword(userRequestDTO.getPassword());
 
-        if (userRequestDTO.getCategories() != null) {
-            user.setCategories(userRequestDTO.getCategories());
+        if (userRequestDTO.getInterests() != null) {
+            user.setInterests(userRequestDTO.getInterests());
         }
         return user;
     }
@@ -39,7 +39,7 @@ public class UserMapper {
         userResponseDTO.setEmail(user.getEmail());
         userResponseDTO.setStatus(user.getStatus());
         userResponseDTO.setCreatedAt(user.getCreatedAt());
-        userResponseDTO.setCategories(user.getCategories());
+        userResponseDTO.setInterests(user.getInterests());
         return userResponseDTO;
     }
 

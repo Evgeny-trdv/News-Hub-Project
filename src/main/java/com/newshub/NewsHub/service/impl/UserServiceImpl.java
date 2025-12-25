@@ -9,6 +9,7 @@ import com.newshub.NewsHub.model.User;
 import com.newshub.NewsHub.model.UserStatus;
 import com.newshub.NewsHub.repository.UserRepository;
 import com.newshub.NewsHub.service.UserService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -20,12 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
  * Сервис для работы с пользователями (User)
  */
-
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -175,8 +176,8 @@ public class UserServiceImpl implements UserService {
             user.setPassword(userRequestDTO.getPassword());
         }
 
-        if (userRequestDTO.getCategories() != null) {
-            user.setCategories(userRequestDTO.getCategories());
+        if (userRequestDTO.getInterests() != null) {
+            user.setInterests(userRequestDTO.getInterests());
         }
 
         user.setUpdatedAt(LocalDateTime.now());
@@ -201,23 +202,61 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод пометки для удаления пользователя
-     * @param userId
+     * @param userId id пользователя
      */
     @Override
     @Transactional
     public void deleteUserWithAbilityReturn(Long userId) {
-
-        User userForDeleted = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-
+        User userForDeleted = findUserById(userId);
         userForDeleted.setStatus(UserStatus.DELETED);
         userRepository.save(userForDeleted);
     }
 
     /**
+     * Метод добавления новостного интереса пользователя
+     * @param userId id пользователя
+     * @param interest новостной интерес
+     * @return DTO пользователя для получения ответа
+     */
+    @Override
+    @Transactional
+    public UserResponseDTO addInterestToUser(Long userId, String interest) {
+        User findedUser = findUserById(userId);
+        findedUser.addCategory(StringUtils.capitalize(interest.trim().toLowerCase()));
+        userRepository.save(findedUser);
+        return userMapper.toUserResponseDTO(findedUser);
+    }
+
+    /**
+     * Метод удаления новостного интереса пользователя
+     * @param userId id пользователя
+     * @param interest новостной интерес
+     * @return DTO пользователя для получения ответа
+     */
+    @Override
+    @Transactional
+    public UserResponseDTO removeInterestToUser(Long userId, String interest) {
+        User findedUser = findUserById(userId);
+        findedUser.removeCategory(correctStringInterest(interest));
+        userRepository.save(findedUser);
+        return userMapper.toUserResponseDTO(findedUser);
+    }
+
+    /**
+     * Метод получения множества новостных интересов пользователя
+     * @param userId id пользователя
+     * @return DTO пользователя для получения ответа
+     */
+    @Override
+    public Set<String> getUserInterests(Long userId) {
+        User findedUser = findUserById(userId);
+        return findedUser.getInterests();
+    }
+
+    /**
      * Метод удаления пользователя из БД по расписанию
      */
-    @Scheduled(cron = "0 0/1 * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void deleteUserForScheduled() {
         List<User> listUsersForDeleted = userRepository.listUserForDeleteWithStatusDeleted();
@@ -232,5 +271,14 @@ public class UserServiceImpl implements UserService {
 
     private boolean validateEmail(String email) {
         return PATTERN.matcher(email).matches();
+    }
+
+    private String correctStringInterest(String interest) {
+        return StringUtils.capitalize(interest.trim().toLowerCase());
+    }
+
+    private User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -59,7 +60,7 @@ public class UserController {
         userService.deleteUser(userId);
     }
 
-    @DeleteMapping("/del{userId}")
+    @DeleteMapping("/delete{userId}")
     @Operation(summary = "Delete the user by userId with ability to return user")
     public void deleteUserWithAbilityReturn(@PathVariable Long userId) {
         userService.deleteUserWithAbilityReturn(userId);
@@ -69,6 +70,24 @@ public class UserController {
     @Operation(summary = "Update the user")
     public UserResponseDTO updateUser(@PathVariable Long userId, @RequestBody UserRequestDTO userRequestDTO) {
         return userService.updateUser(userId, userRequestDTO);
+    }
+
+    @PostMapping("/{userId}/interest")
+    @Operation(summary = "Add the interest to user")
+    public UserResponseDTO addInterest(@PathVariable Long userId, @RequestParam String interest) {
+        return userService.addInterestToUser(userId, interest);
+    }
+
+    @DeleteMapping("/{userId}/interests")
+    @Operation(summary = "Remove the interest to user")
+    public UserResponseDTO removeInterest(@PathVariable Long userId, @RequestParam String interest) {
+        return userService.removeInterestToUser(userId, interest);
+    }
+
+    @GetMapping("/{userId}/interests")
+    @Operation(summary = "Get all interests user")
+    public Set<String> getInterests(@PathVariable Long userId) {
+        return userService.getUserInterests(userId);
     }
 
 }

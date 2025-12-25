@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Set;
 
 public interface UserService {
 
@@ -21,5 +22,9 @@ public interface UserService {
 
     public void deleteUser(Long id);
     public void deleteUserWithAbilityReturn(Long userId);
+
+    public UserResponseDTO addInterestToUser(Long id, String interest);
+    public UserResponseDTO removeInterestToUser(Long id, String interest);
+    public Set<String> getUserInterests(Long id);
 
 }
