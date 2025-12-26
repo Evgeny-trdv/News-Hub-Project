@@ -1,6 +1,7 @@
 package com.newshub.NewsHub.model;
 
 import jakarta.persistence.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -67,7 +68,18 @@ public class User {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
 
-        if (this.interests.isEmpty()) {
+        if (this.interests != null && !this.interests.isEmpty()) {
+            Set<String> formatedInterests = new HashSet<>();
+
+            for (String interest : this.interests) {
+                formatedInterests.add(StringUtils.capitalize(interest.trim().toLowerCase()));
+            }
+
+            this.interests.clear();
+            this.interests.addAll(formatedInterests);
+        }
+
+        if (this.interests == null || this.interests.isEmpty()) {
             this.interests = new HashSet<>();
             this.interests.add("General");
         }
@@ -126,8 +138,8 @@ public class User {
         return interests;
     }
 
-    public void setInterests(Set<String> categories) {
-        this.interests = categories;
+    public void setInterests(Set<String> interests) {
+        this.interests = interests;
     }
 
     public Set<NewsArticle> getFavoriteArticles() {

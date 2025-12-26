@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
     /**
      * Метод получения пользователя (DTO) с помощью id
      * @param userId id пользователя
-     * @return UserResponseDTO
+     * @return UserResponseDTO, DTO пользователя для получения ответа
      */
     @Override
     public UserResponseDTO getUser(Long userId) {
@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
     /**
      * Метод получения пользователя (DTO) с помощью id
      * @param username username пользователя
-     * @return UserResponseDTO
+     * @return UserResponseDTO, DTO пользователя для получения ответа
      */
     @Override
     public UserResponseDTO getUser(String username) {
@@ -96,7 +96,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения списка всех пользователей через пагинацию (по странично)
-     * @param pageable объекст постраничного запроса
+     * @param pageable объект постраничного запроса
      * @return список пользователей (user)
      */
     @Override

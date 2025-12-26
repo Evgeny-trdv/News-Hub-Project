@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,12 +51,14 @@ public class UserController {
 
     @PostMapping
     @Operation(summary = "Create a new user")
+    @ResponseStatus(HttpStatus.CREATED)
     public UserResponseDTO createUser(@RequestBody UserRequestDTO userRequestDTO) {
         return userService.createUser(userRequestDTO);
     }
 
     @DeleteMapping("/{userId}")
     @Operation(summary = "Delete the user by userId")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
     }
@@ -65,6 +68,8 @@ public class UserController {
     public void deleteUserWithAbilityReturn(@PathVariable Long userId) {
         userService.deleteUserWithAbilityReturn(userId);
     }
+
+    //Написать метод восстановления пользователя, который был удален временно (с userStatus = "DELETED")
 
     @PutMapping("/{userId}")
     @Operation(summary = "Update the user")
