@@ -2,9 +2,7 @@ package com.newshub.NewsHub.model;
 
 import jakarta.persistence.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.chrono.ChronoLocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,10 +43,10 @@ public class NewsArticle {
     private Set<String> tags = new HashSet<>();
 
     @Column(name = "published_at")
-    private LocalDate publishedAt;
+    private LocalDateTime publishedAt;
 
     @Column(name = "added_at", updatable = false)
-    private LocalDate addedAt;
+    private LocalDateTime addedAt;
 
     @Column(name = "likes_count")
     private Integer likesCount;
@@ -148,19 +146,19 @@ public class NewsArticle {
         this.tags = tags;
     }
 
-    public LocalDate getPublishedAt() {
+    public LocalDateTime getPublishedAt() {
         return publishedAt;
     }
 
-    public void setPublishedAt(LocalDate publishedAt) {
+    public void setPublishedAt(LocalDateTime publishedAt) {
         this.publishedAt = publishedAt;
     }
 
-    public LocalDate getAddedAt() {
+    public LocalDateTime getAddedAt() {
         return addedAt;
     }
 
-    public void setAddedAt(LocalDate addedAt) {
+    public void setAddedAt(LocalDateTime addedAt) {
         this.addedAt = addedAt;
     }
 
@@ -254,14 +252,14 @@ public class NewsArticle {
         if (this.publishedAt == null) {
             return false;
         }
-        return this.publishedAt.isAfter(ChronoLocalDate.from(LocalDateTime.now().minusHours(24)));
+        return this.publishedAt.isAfter(LocalDateTime.now().minusHours(24));
     }
 
     public boolean isRecent() {
         if (this.publishedAt == null) {
             return false;
         }
-        return this.publishedAt.isAfter(ChronoLocalDate.from(LocalDateTime.now().minusDays(7)));
+        return this.publishedAt.isAfter(LocalDateTime.now().minusDays(7));
     }
 
     public void addTag(String tag) {
