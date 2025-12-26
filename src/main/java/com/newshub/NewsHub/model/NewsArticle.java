@@ -1,18 +1,20 @@
 package com.newshub.NewsHub.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.chrono.ChronoLocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Table(name = "news_articles")
 public class NewsArticle {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "title")
@@ -32,8 +34,7 @@ public class NewsArticle {
     private String author;
 
     @Column(name = "category")
-    @Enumerated(EnumType.STRING)
-    private Category category;
+    private String category;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
@@ -44,10 +45,10 @@ public class NewsArticle {
     private Set<String> tags = new HashSet<>();
 
     @Column(name = "published_at")
-    private LocalDate publishedAt;
+    private LocalDateTime publishedAt;
 
     @Column(name = "added_at", updatable = false)
-    private LocalDate addedAt;
+    private LocalDateTime addedAt;
 
     @Column(name = "likes_count")
     private Integer likesCount;
@@ -70,7 +71,7 @@ public class NewsArticle {
     public NewsArticle() {
     }
 
-    public NewsArticle(String title, String content, String summary, String originalUrl, String author, Category category) {
+    public NewsArticle(String title, String content, String summary, String originalUrl, String author, String category) {
         this.title = title;
         this.content = content;
         this.summary = summary;
@@ -131,11 +132,11 @@ public class NewsArticle {
         this.author = author;
     }
 
-    public Category getCategory() {
+    public String getCategory() {
         return category;
     }
 
-    public void setCategory(Category category) {
+    public void setCategory(String category) {
         this.category = category;
     }
 
@@ -147,19 +148,19 @@ public class NewsArticle {
         this.tags = tags;
     }
 
-    public LocalDate getPublishedAt() {
+    public LocalDateTime getPublishedAt() {
         return publishedAt;
     }
 
-    public void setPublishedAt(LocalDate publishedAt) {
+    public void setPublishedAt(LocalDateTime publishedAt) {
         this.publishedAt = publishedAt;
     }
 
-    public LocalDate getAddedAt() {
+    public LocalDateTime getAddedAt() {
         return addedAt;
     }
 
-    public void setAddedAt(LocalDate addedAt) {
+    public void setAddedAt(LocalDateTime addedAt) {
         this.addedAt = addedAt;
     }
 
@@ -235,7 +236,7 @@ public class NewsArticle {
         this.favoritesCount++;
     }
 
-    public boolean hasCategory(Category category) {
+    public boolean hasCategory(String category) {
         if (category == null || this.category == null) {
             return false;
         }
@@ -253,14 +254,14 @@ public class NewsArticle {
         if (this.publishedAt == null) {
             return false;
         }
-        return this.publishedAt.isAfter(ChronoLocalDate.from(LocalDateTime.now().minusHours(24)));
+        return this.publishedAt.isAfter(LocalDateTime.now().minusHours(24));
     }
 
     public boolean isRecent() {
         if (this.publishedAt == null) {
             return false;
         }
-        return this.publishedAt.isAfter(ChronoLocalDate.from(LocalDateTime.now().minusDays(7)));
+        return this.publishedAt.isAfter(LocalDateTime.now().minusDays(7));
     }
 
     public void addTag(String tag) {
