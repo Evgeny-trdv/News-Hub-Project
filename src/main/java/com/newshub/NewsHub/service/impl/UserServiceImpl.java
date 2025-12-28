@@ -114,11 +114,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
         if (userRequestDTO == null) {
-            throw new ResourceNotFoundException("UserRequestDTO is null");
+            throw new BusinessException("UserRequestDTO is null");
         }
 
         if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
-            throw new ResourceNotFoundException("Username already exists" + userRequestDTO.getUsername());
+            throw new BusinessException("Username already exists" + userRequestDTO.getUsername());
         }
 
         if (!validateEmail(userRequestDTO.getEmail())) {

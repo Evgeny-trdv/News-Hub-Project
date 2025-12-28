@@ -1,6 +1,5 @@
 package com.newshub.NewsHub.dto.userDTO;
 
-import com.newshub.NewsHub.model.Category;
 import com.newshub.NewsHub.model.UserStatus;
 
 import java.time.LocalDateTime;

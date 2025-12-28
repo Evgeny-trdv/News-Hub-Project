@@ -1,18 +1,21 @@
 package com.newshub.NewsHub.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.chrono.ChronoLocalDate;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
+@Table(name = "news_articles")
 public class NewsArticle {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "title")
@@ -32,8 +35,7 @@ public class NewsArticle {
     private String author;
 
     @Column(name = "category")
-    @Enumerated(EnumType.STRING)
-    private Category category;
+    private String category;
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(
@@ -44,19 +46,23 @@ public class NewsArticle {
     private Set<String> tags = new HashSet<>();
 
     @Column(name = "published_at")
-    private LocalDate publishedAt;
+    private LocalDateTime publishedAt;
 
     @Column(name = "added_at", updatable = false)
-    private LocalDate addedAt;
+    private LocalDateTime addedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_id", nullable = false)
+    private NewsSource source;
 
     @Column(name = "likes_count")
-    private Integer likesCount;
+    private Integer likesCount = 0;
 
     @Column(name = "views_count")
-    private Integer viewsCount;
+    private Integer viewsCount = 0;
 
     @Column(name = "favorites_count")
-    private Integer favoritesCount;
+    private Integer favoritesCount = 0;
 
     @Column(name = "is_popular")
     private Boolean isPopular = false;
@@ -64,23 +70,52 @@ public class NewsArticle {
     @Column(name = "is_processed")
     private Boolean isProcessed = false;
 
+    @Column(name = "external_id")
+    private String externalId;
+
+    @Column(name = "language", length = 10)
+    private String language;
+
     @ManyToMany(mappedBy = "favoriteArticles", fetch = FetchType.LAZY)
     private Set<User> favoritedBy = new HashSet<>();
+
+    /**
+     * Связь Many-to-Many с пользователями, прочитавшими статью.
+     * Обратная сторона связи из User.readArticles.
+     * Используется для формирования истории чтения.
+     */
+    @ManyToMany(mappedBy = "readArticles", fetch = FetchType.LAZY)
+    private Set<User> readBy = new HashSet<>();
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.addedAt == null) {
+            this.addedAt = LocalDateTime.now();
+        }
+        if (this.language == null && this.source != null) {
+            this.language = this.source.getLanguage();
+        }
+        if (this.source != null) {
+            this.source.incrementArticlesCount();
+        }
+    }
 
     public NewsArticle() {
     }
 
-    public NewsArticle(String title, String content, String summary, String originalUrl, String author, Category category) {
+    public NewsArticle(String title, String category, LocalDateTime publishedAt, NewsSource source) {
         this.title = title;
-        this.content = content;
-        this.summary = summary;
-        this.originalUrl = originalUrl;
-        this.author = author;
         this.category = category;
-        this.favoritedBy = new HashSet<>();
-        this.favoritesCount = 0;
-        this.viewsCount = 0;
+        this.tags = new HashSet<>();
+        this.publishedAt = publishedAt;
+        this.source = source;
         this.likesCount = 0;
+        this.viewsCount = 0;
+        this.favoritesCount = 0;
+        this.isPopular = false;
+        this.isProcessed = false;
+        this.favoritedBy = new HashSet<>();
+        this.readBy = new HashSet<>();
     }
 
     public Long getId() {
@@ -131,11 +166,11 @@ public class NewsArticle {
         this.author = author;
     }
 
-    public Category getCategory() {
+    public String getCategory() {
         return category;
     }
 
-    public void setCategory(Category category) {
+    public void setCategory(String category) {
         this.category = category;
     }
 
@@ -147,19 +182,19 @@ public class NewsArticle {
         this.tags = tags;
     }
 
-    public LocalDate getPublishedAt() {
+    public LocalDateTime getPublishedAt() {
         return publishedAt;
     }
 
-    public void setPublishedAt(LocalDate publishedAt) {
+    public void setPublishedAt(LocalDateTime publishedAt) {
         this.publishedAt = publishedAt;
     }
 
-    public LocalDate getAddedAt() {
+    public LocalDateTime getAddedAt() {
         return addedAt;
     }
 
-    public void setAddedAt(LocalDate addedAt) {
+    public void setAddedAt(LocalDateTime addedAt) {
         this.addedAt = addedAt;
     }
 
@@ -211,6 +246,77 @@ public class NewsArticle {
         this.favoritedBy = favoritedBy;
     }
 
+    public NewsSource getSource() {
+        return source;
+    }
+
+    public void setSource(NewsSource source) {
+        this.source = source;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public Set<User> getReadBy() {
+        return readBy;
+    }
+
+    public void setReadBy(Set<User> readBy) {
+        this.readBy = readBy;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NewsArticle that = (NewsArticle) o;
+        return Objects.equals(id, that.id) && Objects.equals(title, that.title);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title);
+    }
+
+    @Override
+    public String toString() {
+        return "NewsArticle{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", summary='" + summary + '\'' +
+                ", content='" + content + '\'' +
+                ", originalUrl='" + originalUrl + '\'' +
+                ", author='" + author + '\'' +
+                ", category='" + category + '\'' +
+                ", tags=" + tags +
+                ", publishedAt=" + publishedAt +
+                ", addedAt=" + addedAt +
+                ", source=" + source +
+                ", likesCount=" + likesCount +
+                ", viewsCount=" + viewsCount +
+                ", favoritesCount=" + favoritesCount +
+                ", isPopular=" + isPopular +
+                ", isProcessed=" + isProcessed +
+                ", externalId='" + externalId + '\'' +
+                ", language='" + language + '\'' +
+                ", favoritedBy=" + favoritedBy +
+                ", readBy=" + readBy +
+                '}';
+    }
+
     /**
      * вспомогательные методы
      */
@@ -235,7 +341,7 @@ public class NewsArticle {
         this.favoritesCount++;
     }
 
-    public boolean hasCategory(Category category) {
+    public boolean hasCategory(String category) {
         if (category == null || this.category == null) {
             return false;
         }
@@ -253,14 +359,14 @@ public class NewsArticle {
         if (this.publishedAt == null) {
             return false;
         }
-        return this.publishedAt.isAfter(ChronoLocalDate.from(LocalDateTime.now().minusHours(24)));
+        return this.publishedAt.isAfter(LocalDateTime.now().minusHours(24));
     }
 
     public boolean isRecent() {
         if (this.publishedAt == null) {
             return false;
         }
-        return this.publishedAt.isAfter(ChronoLocalDate.from(LocalDateTime.now().minusDays(7)));
+        return this.publishedAt.isAfter(LocalDateTime.now().minusDays(7));
     }
 
     public void addTag(String tag) {
