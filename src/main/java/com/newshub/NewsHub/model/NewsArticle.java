@@ -87,6 +87,19 @@ public class NewsArticle {
     @ManyToMany(mappedBy = "readArticles", fetch = FetchType.LAZY)
     private Set<User> readBy = new HashSet<>();
 
+    @PrePersist
+    protected void onCreate() {
+        if (this.addedAt == null) {
+            this.addedAt = LocalDateTime.now();
+        }
+        if (this.language == null && this.source != null) {
+            this.language = this.source.getLanguage();
+        }
+        if (this.source != null) {
+            this.source.incrementArticlesCount();
+        }
+    }
+
     public NewsArticle() {
     }
 
