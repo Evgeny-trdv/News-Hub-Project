@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -50,14 +51,18 @@ public class NewsArticle {
     @Column(name = "added_at", updatable = false)
     private LocalDateTime addedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_id", nullable = false)
+    private NewsSource source;
+
     @Column(name = "likes_count")
-    private Integer likesCount;
+    private Integer likesCount = 0;
 
     @Column(name = "views_count")
-    private Integer viewsCount;
+    private Integer viewsCount = 0;
 
     @Column(name = "favorites_count")
-    private Integer favoritesCount;
+    private Integer favoritesCount = 0;
 
     @Column(name = "is_popular")
     private Boolean isPopular = false;
@@ -65,23 +70,39 @@ public class NewsArticle {
     @Column(name = "is_processed")
     private Boolean isProcessed = false;
 
+    @Column(name = "external_id")
+    private String externalId;
+
+    @Column(name = "language", length = 10)
+    private String language;
+
     @ManyToMany(mappedBy = "favoriteArticles", fetch = FetchType.LAZY)
     private Set<User> favoritedBy = new HashSet<>();
+
+    /**
+     * Связь Many-to-Many с пользователями, прочитавшими статью.
+     * Обратная сторона связи из User.readArticles.
+     * Используется для формирования истории чтения.
+     */
+    @ManyToMany(mappedBy = "readArticles", fetch = FetchType.LAZY)
+    private Set<User> readBy = new HashSet<>();
 
     public NewsArticle() {
     }
 
-    public NewsArticle(String title, String content, String summary, String originalUrl, String author, String category) {
+    public NewsArticle(String title, String category, LocalDateTime publishedAt, NewsSource source) {
         this.title = title;
-        this.content = content;
-        this.summary = summary;
-        this.originalUrl = originalUrl;
-        this.author = author;
         this.category = category;
-        this.favoritedBy = new HashSet<>();
-        this.favoritesCount = 0;
-        this.viewsCount = 0;
+        this.tags = new HashSet<>();
+        this.publishedAt = publishedAt;
+        this.source = source;
         this.likesCount = 0;
+        this.viewsCount = 0;
+        this.favoritesCount = 0;
+        this.isPopular = false;
+        this.isProcessed = false;
+        this.favoritedBy = new HashSet<>();
+        this.readBy = new HashSet<>();
     }
 
     public Long getId() {
@@ -210,6 +231,77 @@ public class NewsArticle {
 
     public void setFavoritedBy(Set<User> favoritedBy) {
         this.favoritedBy = favoritedBy;
+    }
+
+    public NewsSource getSource() {
+        return source;
+    }
+
+    public void setSource(NewsSource source) {
+        this.source = source;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public Set<User> getReadBy() {
+        return readBy;
+    }
+
+    public void setReadBy(Set<User> readBy) {
+        this.readBy = readBy;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        NewsArticle that = (NewsArticle) o;
+        return Objects.equals(id, that.id) && Objects.equals(title, that.title);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, title);
+    }
+
+    @Override
+    public String toString() {
+        return "NewsArticle{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", summary='" + summary + '\'' +
+                ", content='" + content + '\'' +
+                ", originalUrl='" + originalUrl + '\'' +
+                ", author='" + author + '\'' +
+                ", category='" + category + '\'' +
+                ", tags=" + tags +
+                ", publishedAt=" + publishedAt +
+                ", addedAt=" + addedAt +
+                ", source=" + source +
+                ", likesCount=" + likesCount +
+                ", viewsCount=" + viewsCount +
+                ", favoritesCount=" + favoritesCount +
+                ", isPopular=" + isPopular +
+                ", isProcessed=" + isProcessed +
+                ", externalId='" + externalId + '\'' +
+                ", language='" + language + '\'' +
+                ", favoritedBy=" + favoritedBy +
+                ", readBy=" + readBy +
+                '}';
     }
 
     /**

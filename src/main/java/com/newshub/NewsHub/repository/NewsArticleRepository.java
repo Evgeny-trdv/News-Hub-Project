@@ -13,4 +13,5 @@ import java.util.Optional;
 @Repository
 public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> {
 
+    public boolean existsByTitle(@NotNull String title);
 }

@@ -1,6 +1,8 @@
 package com.newshub.NewsHub.service.impl;
 
+import com.newshub.NewsHub.dto.articleDTO.NewsArticleRequestDTO;
 import com.newshub.NewsHub.dto.articleDTO.NewsArticleResponseDTO;
+import com.newshub.NewsHub.exception.BusinessException;
 import com.newshub.NewsHub.exception.ResourceNotFoundException;
 import com.newshub.NewsHub.mapper.NewsArticleMapper;
 import com.newshub.NewsHub.model.NewsArticle;
@@ -11,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Сервис для работы с новостными статьями (NewsArticle)
@@ -18,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class NewsArticleServiceImpl implements NewsArticleService {
 
-    private final Logger logger = LoggerFactory.getLogger(NewsArticleServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NewsArticleServiceImpl.class);
 
     private final NewsArticleMapper newsArticleMapper;
     private final NewsArticleRepository newsArticleRepository;
@@ -31,7 +34,7 @@ public class NewsArticleServiceImpl implements NewsArticleService {
     /**
      * Метод получения новостной статьи по id
      * @param newsArticleId id новостной статьи
-     * @return ответ DTO новостной статьи для получения ответа
+     * @return DTO новостной статьи для получения ответа
      */
     @Override
     public NewsArticleResponseDTO getNewsArticle(Long newsArticleId) {
@@ -51,5 +54,42 @@ public class NewsArticleServiceImpl implements NewsArticleService {
     public Page<NewsArticleResponseDTO> getNewsArticles(Pageable pageable) {
         Page<NewsArticle> findedNewsArticles = newsArticleRepository.findAll(pageable);
         return findedNewsArticles.map(newsArticleMapper::toNewsArticleResponse);
+    }
+
+    /**
+     * Метод добавления новостной статьи
+     * @param newsArticleRequestDTO DTO новостной статьи для создания/обновления
+     * @return DTO новостной статьи для получения ответа
+     */
+    @Transactional
+    @Override
+    public NewsArticleResponseDTO addNewsArticle(NewsArticleRequestDTO newsArticleRequestDTO) {
+        if (newsArticleRequestDTO == null) {
+            throw new BusinessException("newsArticleRequestDTO is null");
+        }
+        if (newsArticleRepository.existsByTitle(newsArticleRequestDTO.getTitle())) {
+            throw new BusinessException("Title already exists");
+        }
+        NewsArticle createdNewsArticle = newsArticleMapper.toNewsArticleEntity(newsArticleRequestDTO);
+        newsArticleRepository.save(createdNewsArticle);
+
+        LOGGER.info("News Article {} added successfully", createdNewsArticle.getTitle());
+
+        return newsArticleMapper.toNewsArticleResponse(createdNewsArticle);
+    }
+
+    @Override
+    public NewsArticleResponseDTO updateNewsArticle(Long newsArticleId, NewsArticleRequestDTO newsArticleRequestDTO) {
+        return null;
+    }
+
+    @Override
+    public void deleteNewsArticle(Long newsArticleId) {
+        if (!newsArticleRepository.existsById(newsArticleId)) {
+            throw new ResourceNotFoundException("NewsArticle", "id", newsArticleId);
+        }
+
+        LOGGER.info("News Article {} deleted successfully", newsArticleId);
+        newsArticleRepository.deleteById(newsArticleId);
     }
 }
