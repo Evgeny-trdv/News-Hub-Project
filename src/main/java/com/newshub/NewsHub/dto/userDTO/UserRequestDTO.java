@@ -1,7 +1,5 @@
 package com.newshub.NewsHub.dto.userDTO;
 
-import com.newshub.NewsHub.model.Category;
-
 import java.util.Objects;
 import java.util.Set;
 

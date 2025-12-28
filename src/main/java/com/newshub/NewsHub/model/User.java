@@ -40,6 +40,14 @@ public class User {
     )
     private Set<NewsArticle> favoriteArticles = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "read_history",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "article_id")
+    )
+    private Set<NewsArticle> readArticles = new HashSet<>();
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -59,6 +67,7 @@ public class User {
         this.status = UserStatus.ACTIVE;
         this.interests = new HashSet<>();
         this.favoriteArticles = new HashSet<>();
+        this.readArticles = new HashSet<>();
         this.userScore = 0;
     }
 
@@ -160,6 +169,14 @@ public class User {
 
     public void setUserScore(Integer userScore) {
         this.userScore = userScore;
+    }
+
+    public Set<NewsArticle> getReadArticles() {
+        return readArticles;
+    }
+
+    public void setReadArticles(Set<NewsArticle> readArticles) {
+        this.readArticles = readArticles;
     }
 
     /**
