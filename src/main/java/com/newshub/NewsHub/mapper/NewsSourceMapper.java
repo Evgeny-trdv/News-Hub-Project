@@ -54,4 +54,37 @@ public class NewsSourceMapper {
         newsSourceResponseDTO.setUpdateFrequency(entity.getUpdateFrequency());
         return newsSourceResponseDTO;
     }
+
+    public void updateEntity(NewsSource source, NewsSourceRequestDTO dto) {
+        if (dto.getName() != null) {
+            source.setName(dto.getName());
+        }
+        if (dto.getSlug() != null) {
+            source.setSlug(dto.getSlug());
+        }
+        if (dto.getDescription() != null) {
+            source.setDescription(dto.getDescription());
+        }
+        if (dto.getWebsiteUrl() != null) {
+            source.setWebsiteUrl(dto.getWebsiteUrl());
+        }
+        if (dto.getLogoUrl() != null) {
+            source.setLogoUrl(dto.getLogoUrl());
+        }
+        if (dto.getPrimaryCategory() != null) {
+            source.setPrimaryCategory(dto.getPrimaryCategory());
+        }
+        if (dto.getCategories() != null) {
+            source.setCategories(dto.getCategories());
+        }
+        if (dto.getLanguage() != null) {
+            source.setLanguage(dto.getLanguage());
+        }
+        if (dto.getCountry() != null) {
+            source.setCountry(dto.getCountry());
+        }
+        if (dto.getUpdateFrequency() != null) {
+            source.setUpdateFrequency(dto.getUpdateFrequency());
+        }
+    }
 }

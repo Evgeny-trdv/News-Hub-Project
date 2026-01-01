@@ -32,6 +32,13 @@ public class NewsSource {
     @Column(name = "website_url")
     private String websiteUrl;
 
+    /**
+     * URL RSS/Atom ленты источника.
+     * Может использоваться для автоматического парсинга в будущем.
+     */
+    @Column(name = "rss_feed_url", length = 255)
+    private String rssFeedUrl;
+
     @Column(name = "logo_url")
     private String logoUrl;
 
@@ -282,6 +289,14 @@ public class NewsSource {
 
     public void setUpdateFrequency(Integer updateFrequency) {
         this.updateFrequency = updateFrequency;
+    }
+
+    public String getRssFeedUrl() {
+        return rssFeedUrl;
+    }
+
+    public void setRssFeedUrl(String rssFeedUrl) {
+        this.rssFeedUrl = rssFeedUrl;
     }
 
     @Override

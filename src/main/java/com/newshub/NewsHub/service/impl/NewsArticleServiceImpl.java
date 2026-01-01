@@ -6,7 +6,9 @@ import com.newshub.NewsHub.exception.BusinessException;
 import com.newshub.NewsHub.exception.ResourceNotFoundException;
 import com.newshub.NewsHub.mapper.NewsArticleMapper;
 import com.newshub.NewsHub.model.NewsArticle;
+import com.newshub.NewsHub.model.NewsSource;
 import com.newshub.NewsHub.repository.NewsArticleRepository;
+import com.newshub.NewsHub.repository.NewsSourceRepository;
 import com.newshub.NewsHub.service.NewsArticleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +27,12 @@ public class NewsArticleServiceImpl implements NewsArticleService {
 
     private final NewsArticleMapper newsArticleMapper;
     private final NewsArticleRepository newsArticleRepository;
+    private final NewsSourceRepository newsSourceRepository;
 
-    public NewsArticleServiceImpl(NewsArticleMapper newsArticleMapper, NewsArticleRepository newsArticleRepository) {
+    public NewsArticleServiceImpl(NewsArticleMapper newsArticleMapper, NewsArticleRepository newsArticleRepository, NewsSourceRepository newsSourceRepository) {
         this.newsArticleMapper = newsArticleMapper;
         this.newsArticleRepository = newsArticleRepository;
+        this.newsSourceRepository = newsSourceRepository;
     }
 
     /**
@@ -36,13 +40,17 @@ public class NewsArticleServiceImpl implements NewsArticleService {
      * @param newsArticleId id новостной статьи
      * @return DTO новостной статьи для получения ответа
      */
+    @Transactional
     @Override
     public NewsArticleResponseDTO getNewsArticle(Long newsArticleId) {
 
         NewsArticle findedNewsArticle = newsArticleRepository.findById(newsArticleId)
                 .orElseThrow(() -> new ResourceNotFoundException("NewsArticle", "id", newsArticleId));
 
-        return newsArticleMapper.toNewsArticleResponse(findedNewsArticle);
+        findedNewsArticle.incrementViewsCount();
+        newsArticleRepository.save(findedNewsArticle);
+
+        return newsArticleMapper.toNewsArticleResponseDTO(findedNewsArticle);
     }
 
     /**
@@ -51,9 +59,33 @@ public class NewsArticleServiceImpl implements NewsArticleService {
      * @return список всех DTO новостных статей для получения ответа
      */
     @Override
-    public Page<NewsArticleResponseDTO> getNewsArticles(Pageable pageable) {
-        Page<NewsArticle> findedNewsArticles = newsArticleRepository.findAll(pageable);
-        return findedNewsArticles.map(newsArticleMapper::toNewsArticleResponse);
+    public Page<NewsArticleResponseDTO> getAllNewsArticles(Pageable pageable) {
+        Page<NewsArticle> foundNewsArticles = newsArticleRepository.findAll(pageable);
+        return foundNewsArticles.map(newsArticleMapper::toNewsArticleResponseDTO);
+    }
+
+    /**
+     * Метод получения всех новостных статей определённой категории (по странично)
+     * @param category категория новостной статьи
+     * @param pageable объект постраничного запроса
+     * @return список всех DTO новостных статей по категории для получения ответа
+     */
+    @Override
+    public Page<NewsArticleResponseDTO> getNewsArticlesByCategory(String category, Pageable pageable) {
+        Page<NewsArticle> foundNewsArticlesByCategory = newsArticleRepository.findNewsArticlesByCategory(category, pageable);
+        return foundNewsArticlesByCategory.map(newsArticleMapper::toNewsArticleResponseDTO);
+    }
+
+    /**
+     * Метод получения всех новостных статей определённого источника новостей (по странично)
+     * @param sourceId id источника новостей
+     * @param pageable объект постраничного запроса
+     * @return список всех DTO новостных статей по источнику новостей для получения ответа
+     */
+    @Override
+    public Page<NewsArticleResponseDTO> getNewsArticlesBySource(Long sourceId, Pageable pageable) {
+        Page<NewsArticle> foundNewsArticlesBySource = newsArticleRepository.findNewsArticlesBySource(sourceId, pageable);
+        return foundNewsArticlesBySource.map(newsArticleMapper::toNewsArticleResponseDTO);
     }
 
     /**
@@ -67,15 +99,21 @@ public class NewsArticleServiceImpl implements NewsArticleService {
         if (newsArticleRequestDTO == null) {
             throw new BusinessException("newsArticleRequestDTO is null");
         }
-        if (newsArticleRepository.existsByTitle(newsArticleRequestDTO.getTitle())) {
-            throw new BusinessException("Title already exists");
+
+        NewsSource source = newsSourceRepository.findById(newsArticleRequestDTO.getSourceId())
+                .orElseThrow(() -> new ResourceNotFoundException("NewsSource", "id", newsArticleRequestDTO.getSourceId()));
+
+        if (newsArticleRequestDTO.getExternalId() != null &&
+                newsArticleRepository.existsByExternalId(newsArticleRequestDTO.getExternalId())) {
+            throw new BusinessException("Article with externalId already exists: " + newsArticleRequestDTO.getExternalId());
         }
-        NewsArticle createdNewsArticle = newsArticleMapper.toNewsArticleEntity(newsArticleRequestDTO);
+
+        NewsArticle createdNewsArticle = newsArticleMapper.toNewsArticleEntity(newsArticleRequestDTO, source);
         newsArticleRepository.save(createdNewsArticle);
 
         LOGGER.info("News Article {} added successfully", createdNewsArticle.getTitle());
 
-        return newsArticleMapper.toNewsArticleResponse(createdNewsArticle);
+        return newsArticleMapper.toNewsArticleResponseDTO(createdNewsArticle);
     }
 
     @Override

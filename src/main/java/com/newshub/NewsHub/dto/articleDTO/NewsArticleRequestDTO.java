@@ -1,5 +1,7 @@
 package com.newshub.NewsHub.dto.articleDTO;
 
+import com.newshub.NewsHub.model.NewsSource;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -14,19 +16,25 @@ public class NewsArticleRequestDTO {
     private String category;
     private Set<String> tags;
     private LocalDateTime publishedAt;
+    private Long sourceId;
+    private String externalId;
+    private String language;
 
     public NewsArticleRequestDTO() {
     }
 
-    public NewsArticleRequestDTO(String title, String summary, String content, String originalUrl, String author, String category, Set<String> tags, LocalDateTime publishedAt) {
-        this.title = title;
-        this.summary = summary;
-        this.content = content;
-        this.originalUrl = originalUrl;
-        this.author = author;
-        this.category = category;
-        this.tags = tags;
+    public NewsArticleRequestDTO(Long sourceId, String externalId, String language, LocalDateTime publishedAt, Set<String> tags, String category, String author, String originalUrl, String content, String summary, String title) {
+        this.sourceId = sourceId;
+        this.externalId = externalId;
+        this.language = language;
         this.publishedAt = publishedAt;
+        this.tags = tags;
+        this.category = category;
+        this.author = author;
+        this.originalUrl = originalUrl;
+        this.content = content;
+        this.summary = summary;
+        this.title = title;
     }
 
     public String getTitle() {
@@ -91,6 +99,30 @@ public class NewsArticleRequestDTO {
 
     public void setPublishedAt(LocalDateTime publishedAt) {
         this.publishedAt = publishedAt;
+    }
+
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Long sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     @Override

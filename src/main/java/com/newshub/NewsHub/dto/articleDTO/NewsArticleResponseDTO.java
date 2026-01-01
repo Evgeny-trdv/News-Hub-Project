@@ -1,5 +1,7 @@
 package com.newshub.NewsHub.dto.articleDTO;
 
+import com.newshub.NewsHub.model.NewsSource;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Set;
@@ -19,15 +21,23 @@ public class NewsArticleResponseDTO {
     private Set<String> tags;
     private LocalDateTime publishedAt;
     private LocalDateTime addedAt;
+    private Long sourceId;
+    private String sourceName;
+    private String sourceSlug;
     private Integer likesCount;
     private Integer viewsCount;
     private Integer favoritesCount;
+    private String language;
     private Boolean isPopular;
+    private Boolean isProcessed;
+    private Boolean isFresh;
+    private Boolean isRecent;
+    private Integer readingTimeMinutes;
 
     public NewsArticleResponseDTO() {
     }
 
-    public NewsArticleResponseDTO(Long id, String title, String summary, String content, String originalUrl, String author, String category, Set<String> tags, LocalDateTime publishedAt, LocalDateTime addedAt, Integer likesCount, Integer viewsCount, Integer favoritesCount, Boolean isPopular) {
+    public NewsArticleResponseDTO(Long id, String title, String summary, String content, String originalUrl, String author, String category, Set<String> tags, LocalDateTime publishedAt, LocalDateTime addedAt, Long sourceId, String sourceName, String sourceSlug, Integer likesCount, Integer viewsCount, Integer favoritesCount, String language, Boolean isPopular, Boolean isProcessed, Boolean isFresh, Boolean isRecent, Integer readingTimeMinutes) {
         this.id = id;
         this.title = title;
         this.summary = summary;
@@ -38,10 +48,18 @@ public class NewsArticleResponseDTO {
         this.tags = tags;
         this.publishedAt = publishedAt;
         this.addedAt = addedAt;
+        this.sourceId = sourceId;
+        this.sourceName = sourceName;
+        this.sourceSlug = sourceSlug;
         this.likesCount = likesCount;
         this.viewsCount = viewsCount;
         this.favoritesCount = favoritesCount;
+        this.language = language;
         this.isPopular = isPopular;
+        this.isProcessed = isProcessed;
+        this.isFresh = isFresh;
+        this.isRecent = isRecent;
+        this.readingTimeMinutes = readingTimeMinutes;
     }
 
     public Long getId() {
@@ -156,6 +174,70 @@ public class NewsArticleResponseDTO {
         isPopular = popular;
     }
 
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Long sourceId) {
+        this.sourceId = sourceId;
+    }
+
+    public String getSourceName() {
+        return sourceName;
+    }
+
+    public void setSourceName(String sourceName) {
+        this.sourceName = sourceName;
+    }
+
+    public String getSourceSlug() {
+        return sourceSlug;
+    }
+
+    public void setSourceSlug(String sourceSlug) {
+        this.sourceSlug = sourceSlug;
+    }
+
+    public Boolean getProcessed() {
+        return isProcessed;
+    }
+
+    public void setProcessed(Boolean processed) {
+        isProcessed = processed;
+    }
+
+    public Boolean getFresh() {
+        return isFresh;
+    }
+
+    public void setFresh(Boolean fresh) {
+        isFresh = fresh;
+    }
+
+    public Boolean getRecent() {
+        return isRecent;
+    }
+
+    public void setRecent(Boolean recent) {
+        isRecent = recent;
+    }
+
+    public Integer getReadingTimeMinutes() {
+        return readingTimeMinutes;
+    }
+
+    public void setReadingTimeMinutes(Integer readingTimeMinutes) {
+        this.readingTimeMinutes = readingTimeMinutes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -182,10 +264,15 @@ public class NewsArticleResponseDTO {
                 ", tags=" + tags +
                 ", publishedAt=" + publishedAt +
                 ", addedAt=" + addedAt +
+                ", source=" + sourceId + ", " + sourceName +
                 ", likesCount=" + likesCount +
                 ", viewsCount=" + viewsCount +
                 ", favoritesCount=" + favoritesCount +
                 ", isPopular=" + isPopular +
+                ", isProcessed=" + isProcessed +
+                ", isFresh=" + isFresh +
+                ", isRecent=" + isRecent +
+                ", readingTimeMinutes=" + readingTimeMinutes +
                 '}';
     }
 }
