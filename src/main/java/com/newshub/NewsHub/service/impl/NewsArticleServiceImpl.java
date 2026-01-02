@@ -42,8 +42,7 @@ public class NewsArticleServiceImpl implements NewsArticleService {
      */
     @Transactional
     @Override
-    public NewsArticleResponseDTO getNewsArticle(Long newsArticleId) {
-
+    public NewsArticleResponseDTO getNewsArticleById(Long newsArticleId) {
         NewsArticle findedNewsArticle = newsArticleRepository.findById(newsArticleId)
                 .orElseThrow(() -> new ResourceNotFoundException("NewsArticle", "id", newsArticleId));
 
@@ -89,9 +88,20 @@ public class NewsArticleServiceImpl implements NewsArticleService {
     }
 
     /**
+     * Метод получения всех популярных новостных статей (по станично)
+     * @param pageable объект постраничного запроса
+     * @return список всех DTO новостных статей для получения ответа, популярных
+     */
+    @Override
+    public Page<NewsArticleResponseDTO> getNewsArticlesByIsPopular(Pageable pageable) {
+        Page<NewsArticle> foundNewsArticlesByIsPopular = newsArticleRepository.findNewsArticlesByIsPopularTrue(pageable);
+        return foundNewsArticlesByIsPopular.map(newsArticleMapper::toNewsArticleResponseDTO);
+    }
+
+    /**
      * Метод добавления новостной статьи
      * @param newsArticleRequestDTO DTO новостной статьи для создания/обновления
-     * @return DTO новостной статьи для получения ответа
+     * @return DTO созданной новостной статьи для получения ответа
      */
     @Transactional
     @Override
@@ -116,17 +126,41 @@ public class NewsArticleServiceImpl implements NewsArticleService {
         return newsArticleMapper.toNewsArticleResponseDTO(createdNewsArticle);
     }
 
+    /**
+     * Метод обновления информации новостной статьи
+     * @param newsArticleId id новостной статьи
+     * @param newsArticleRequestDTO DTO новостной статьи для создания/обновления
+     * @return DTO обновленной новостной статьи для получения ответа
+     */
     @Override
+    @Transactional
     public NewsArticleResponseDTO updateNewsArticle(Long newsArticleId, NewsArticleRequestDTO newsArticleRequestDTO) {
-        return null;
+        NewsArticle foundNewsArticle = newsArticleRepository.findById(newsArticleId)
+                .orElseThrow(() -> new ResourceNotFoundException("NewsArticle", "id", newsArticleId));
+
+        NewsSource source = null;
+        if (newsArticleRequestDTO.getSourceId() != null) {
+            LOGGER.info("NewsArticle with id {} have NewsSource - id {}", newsArticleId, newsArticleRequestDTO.getSourceId());
+            source = newsSourceRepository.findById(newsArticleRequestDTO.getSourceId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Source", "id", newsArticleRequestDTO.getSourceId()));
+        }
+        newsArticleMapper.updateEntity(foundNewsArticle, newsArticleRequestDTO, source);
+        NewsArticle updatedArticle = newsArticleRepository.save(foundNewsArticle);
+
+        LOGGER.info("News Article {} updated successfully", updatedArticle.getId());
+        return newsArticleMapper.toNewsArticleResponseDTO(updatedArticle);
     }
 
+    /**
+     * Метод удаления новостной статьи
+     * @param newsArticleId id новостной статьи
+     */
     @Override
+    @Transactional
     public void deleteNewsArticle(Long newsArticleId) {
         if (!newsArticleRepository.existsById(newsArticleId)) {
             throw new ResourceNotFoundException("NewsArticle", "id", newsArticleId);
         }
-
         LOGGER.info("News Article {} deleted successfully", newsArticleId);
         newsArticleRepository.deleteById(newsArticleId);
     }

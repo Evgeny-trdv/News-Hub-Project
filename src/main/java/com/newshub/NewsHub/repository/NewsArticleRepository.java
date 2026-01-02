@@ -25,4 +25,8 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
 
     @Query(value = "SELECT * FROM news_articles WHERE source_id := sourceId", nativeQuery = true)
     public Page<NewsArticle> findNewsArticlesBySource(@NotNull @Param("sourceId") Long sourceId, @NotNull Pageable pageable);
+
+    @Query(value = "SELECT * FROM news_articles WHERE is_popular = TRUE", nativeQuery = true)
+    public Page<NewsArticle> findNewsArticlesByIsPopularTrue(Pageable pageable);
+
 }

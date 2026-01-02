@@ -50,7 +50,7 @@ public class UserController {
     }
 
     @PostMapping
-    @Operation(summary = "Create a new user")
+    @Operation(summary = "Create the new user")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponseDTO createUser(@RequestBody UserRequestDTO userRequestDTO) {
         return userService.createUser(userRequestDTO);
