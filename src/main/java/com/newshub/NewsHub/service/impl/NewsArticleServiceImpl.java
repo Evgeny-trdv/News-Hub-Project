@@ -2,20 +2,28 @@ package com.newshub.NewsHub.service.impl;
 
 import com.newshub.NewsHub.dto.articleDTO.NewsArticleRequestDTO;
 import com.newshub.NewsHub.dto.articleDTO.NewsArticleResponseDTO;
+import com.newshub.NewsHub.dto.feedDTO.FeedRequestDTO;
 import com.newshub.NewsHub.exception.BusinessException;
 import com.newshub.NewsHub.exception.ResourceNotFoundException;
 import com.newshub.NewsHub.mapper.NewsArticleMapper;
 import com.newshub.NewsHub.model.NewsArticle;
 import com.newshub.NewsHub.model.NewsSource;
+import com.newshub.NewsHub.model.User;
 import com.newshub.NewsHub.repository.NewsArticleRepository;
 import com.newshub.NewsHub.repository.NewsSourceRepository;
+import com.newshub.NewsHub.repository.UserRepository;
 import com.newshub.NewsHub.service.NewsArticleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Сервис для работы с новостными статьями (NewsArticle)
@@ -28,11 +36,13 @@ public class NewsArticleServiceImpl implements NewsArticleService {
     private final NewsArticleMapper newsArticleMapper;
     private final NewsArticleRepository newsArticleRepository;
     private final NewsSourceRepository newsSourceRepository;
+    private final UserRepository userRepository;
 
-    public NewsArticleServiceImpl(NewsArticleMapper newsArticleMapper, NewsArticleRepository newsArticleRepository, NewsSourceRepository newsSourceRepository) {
+    public NewsArticleServiceImpl(NewsArticleMapper newsArticleMapper, NewsArticleRepository newsArticleRepository, NewsSourceRepository newsSourceRepository, UserRepository userRepository) {
         this.newsArticleMapper = newsArticleMapper;
         this.newsArticleRepository = newsArticleRepository;
         this.newsSourceRepository = newsSourceRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -163,5 +173,35 @@ public class NewsArticleServiceImpl implements NewsArticleService {
         }
         LOGGER.info("News Article {} deleted successfully", newsArticleId);
         newsArticleRepository.deleteById(newsArticleId);
+    }
+
+    /**
+     * Метод формирования ленты новостей на основе интересов пользователя
+     * @param userId id пользователя
+     * @param feedRequest запрос ленты новостей
+     * @return
+     */
+    @Transactional
+    public Page<NewsArticleResponseDTO> getUserFeed(Long userId, FeedRequestDTO feedRequest) {
+        //1. найти пользователя
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        //2. список интересов пользователя
+        Set<String> interestsUser = Set.copyOf(user.getInterests());
+
+        Sort sort = Sort.by(Sort.Direction.fromString(feedRequest.getSortDirection()), feedRequest.getSortBy());
+        Pageable pageable = PageRequest.of(feedRequest.getPage(), feedRequest.getSize(), sort);
+
+        if (interestsUser != null && !interestsUser.isEmpty()) {
+            Page<NewsArticle> foundNewsArticles = newsArticleRepository
+                    .findNewsArticlesByCategories(interestsUser, pageable);
+            return foundNewsArticles.map(newsArticleMapper::toNewsArticleResponseDTO);
+        } else {
+            Page<NewsArticle> allNewsArticles = newsArticleRepository
+                    .findAll(pageable);
+            return allNewsArticles.map(newsArticleMapper::toNewsArticleResponseDTO);
+        }
+
     }
 }

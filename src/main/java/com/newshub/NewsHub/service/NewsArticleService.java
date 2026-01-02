@@ -22,4 +22,6 @@ public interface NewsArticleService {
     public NewsArticleResponseDTO updateNewsArticle(Long newsArticleId, NewsArticleRequestDTO newsArticleRequestDTO);
 
     public void deleteNewsArticle(Long newsArticleId);
+
+
 }

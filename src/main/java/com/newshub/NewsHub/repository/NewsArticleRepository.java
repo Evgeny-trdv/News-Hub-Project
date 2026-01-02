@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Репозиторий для работы с новостными статьями
@@ -23,10 +24,16 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
     public Page<NewsArticle> findNewsArticlesByCategory(@NotNull @Param("category") String category,
                                                         @NotNull Pageable pageable);
 
+    @Query(value = "SELECT * FROM news_articles WHERE category IN : categories ORDER BY published_at DESC", nativeQuery = true)
+    public Page<NewsArticle> findNewsArticlesByCategories(@NotNull @Param("categories") Set<String> categories,
+                                                        @NotNull Pageable pageable);
+
     @Query(value = "SELECT * FROM news_articles WHERE source_id := sourceId", nativeQuery = true)
     public Page<NewsArticle> findNewsArticlesBySource(@NotNull @Param("sourceId") Long sourceId, @NotNull Pageable pageable);
 
     @Query(value = "SELECT * FROM news_articles WHERE is_popular = TRUE", nativeQuery = true)
     public Page<NewsArticle> findNewsArticlesByIsPopularTrue(Pageable pageable);
+
+
 
 }
