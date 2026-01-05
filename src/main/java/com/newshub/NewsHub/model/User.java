@@ -193,11 +193,11 @@ public class User {
         this.readArticles = readArticles;
     }
 
-    public Set<ArticleLike> getLikes() {
+    public Set<ArticleLike> getArticleLikes() {
         return articleLikes;
     }
 
-    public void setLikes(Set<ArticleLike> articleLikes) {
+    public void setArticleLikes(Set<ArticleLike> articleLikes) {
         this.articleLikes = articleLikes;
     }
 
@@ -244,7 +244,7 @@ public class User {
 
         return this.articleLikes
                 .stream()
-                .anyMatch(like -> like.getNewsArticle().equals(article) && like.isLiked());
+                .anyMatch(like -> like.getArticle().equals(article) && like.isLiked());
     }
 
     /**
@@ -258,8 +258,9 @@ public class User {
         }
         return articleLikes
                 .stream()
-                .filter(articleLike -> articleLike.getNewsArticle().equals(article) && articleLike.isLiked())
-                .findFirst().orElse(null);
+                .filter(articleLike -> articleLike.getArticle().equals(article) && articleLike.isLiked())
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -280,7 +281,7 @@ public class User {
         }
 
         ArticleLike articleLike = new ArticleLike();
-        articleLike.setNewsArticle(article);
+        articleLike.setArticle(article);
         articleLike.setUser(this);
         this.articleLikes.add(articleLike);
         article.getLikes().add(articleLike);
@@ -311,13 +312,13 @@ public class User {
 
     /**
      * метод получения списка лайкнутых статей
-     * @return
+     * @return список новостных статей, которые были лайкнуты
      */
     public List<NewsArticle> getListNewsArticleLiked() {
         return articleLikes
                 .stream()
                 .filter(ArticleLike::isLiked)
-                .map(ArticleLike::getNewsArticle)
+                .map(ArticleLike::getArticle)
                 .toList();
     }
 

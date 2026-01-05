@@ -222,7 +222,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDTO addInterestToUser(Long userId, String interest) {
         User findedUser = findUserById(userId);
-        findedUser.addCategory(StringUtils.capitalize(interest.trim().toLowerCase()));
+        findedUser.addInterest(StringUtils.capitalize(interest.trim().toLowerCase()));
         userRepository.save(findedUser);
         return userMapper.toUserResponseDTO(findedUser);
     }
@@ -237,7 +237,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponseDTO removeInterestToUser(Long userId, String interest) {
         User findedUser = findUserById(userId);
-        findedUser.removeCategory(correctStringInterest(interest));
+        findedUser.removeInterest(correctStringInterest(interest));
         userRepository.save(findedUser);
         return userMapper.toUserResponseDTO(findedUser);
     }

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Table(name = "article_likes",
+@Table(name = "Article_likes",
         uniqueConstraints = {@UniqueConstraint(
                 columnNames = ("user_id, articles_id"),
                 name = "uk_user_article_like")})
@@ -25,7 +25,7 @@ public class ArticleLike {
 
     @ManyToOne
     @JoinColumn(name = "article_id")
-    private NewsArticle newsArticle;
+    private NewsArticle article;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
