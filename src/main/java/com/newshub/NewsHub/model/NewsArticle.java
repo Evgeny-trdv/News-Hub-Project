@@ -1,16 +1,12 @@
 package com.newshub.NewsHub.model;
 
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
-@Table(name = "news_articles")
+@Table(name = "News_articles")
 public class NewsArticle {
 
     @Id
@@ -87,6 +83,9 @@ public class NewsArticle {
     @ManyToMany(mappedBy = "readArticles", fetch = FetchType.LAZY)
     private Set<User> readBy = new HashSet<>();
 
+    @OneToMany(mappedBy = "article", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<ArticleLike> likes = new HashSet<>();
+
     @PrePersist
     protected void onCreate() {
         if (this.addedAt == null) {
@@ -98,6 +97,11 @@ public class NewsArticle {
         if (this.source != null) {
             this.source.incrementArticlesCount();
         }
+    }
+
+    @PostLoad
+    public void onLoad() {
+        updateLikesCount();
     }
 
     public NewsArticle() {
@@ -116,6 +120,7 @@ public class NewsArticle {
         this.isProcessed = false;
         this.favoritedBy = new HashSet<>();
         this.readBy = new HashSet<>();
+        this.likes = new HashSet<>();
     }
 
     public Long getId() {
@@ -278,6 +283,14 @@ public class NewsArticle {
         this.readBy = readBy;
     }
 
+    public Set<ArticleLike> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Set<ArticleLike> likes) {
+        this.likes = likes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -320,12 +333,6 @@ public class NewsArticle {
     /**
      * вспомогательные методы
      */
-    public void incrementLikesCount() {
-        if (this.likesCount == null) {
-            this.likesCount = 0;
-        }
-        this.likesCount++;
-    }
 
     public void incrementViewsCount() {
         if (this.viewsCount == null) {
@@ -339,6 +346,10 @@ public class NewsArticle {
             this.favoritesCount = 0;
         }
         this.favoritesCount++;
+    }
+
+    public void decrementFavoritesCount() {
+        this.favoritesCount--;
     }
 
     public boolean hasCategory(String category) {
@@ -394,4 +405,101 @@ public class NewsArticle {
             this.isPopular = true;
         }
     }
+
+    /**
+     * метод обновления счетчика лайков у статьи
+     */
+    public void updateLikesCount() {
+        if (this.likesCount == null) {
+            this.likesCount = 0;
+            return;
+        }
+        this.likesCount = (int) likes
+                .stream()
+                .filter(ArticleLike::isLiked)
+                .count();
+    }
+
+    /**
+     * метод проверка на лайк от пользователя
+     * @param user пользователь
+     * @return true/false
+     */
+    public boolean isLikedUser(User user) {
+        if (user == null || likes == null) {
+            return false;
+        }
+        return likes.stream().anyMatch(like -> like.getUser().equals(user) && like.isLiked());
+    }
+
+    /**
+     * метод получения лайка на статью от определённого пользователя
+     * @param user пользователь
+     * @return лайк на статью
+     */
+    public ArticleLike getArticleLikeByUser(User user) {
+        if (user == null || likes == null) {
+            return null;
+        }
+        return this.likes
+                .stream()
+                .filter(like -> like.getUser().equals(user) && like.isLiked())
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * метод добавления лайка от пользователя
+     * @param user пользователь
+     * @return лайк на статью (существующий/вновь созданный)
+     */
+    public ArticleLike addArticleLikeByUser(User user) {
+        if (user == null || likes == null) {
+            return null;
+        }
+        if (isLikedUser(user)) {
+            ArticleLike existingLike = getArticleLikeByUser(user);
+            if (!existingLike.isLiked()) {
+                existingLike.restore();
+                updateLikesCount();
+            }
+            return existingLike;
+        }
+        ArticleLike newLike = new ArticleLike();
+
+        newLike.setUser(user);
+        user.getArticleLikes().add(newLike);
+
+        newLike.setArticle(this);
+        this.likes.add(newLike);
+
+        updateLikesCount();
+        return newLike;
+    }
+
+    /**
+     * метод удаления лайка к статье определённого пользователя
+     * @param user пользователь
+     * @return true/false
+     */
+    public boolean removeArticleLikeByUser(User user) {
+        if (user == null || likes == null) {
+            return false;
+        }
+        if (isLikedUser(user)) {
+            ArticleLike existingLike = getArticleLikeByUser(user);
+            existingLike.cancel();
+            updateLikesCount();
+        }
+        return false;
+    }
+
+    public List<User> getListUsersWHoLiked() {
+        return this.likes
+                .stream()
+                .filter(ArticleLike::isLiked)
+                .map(ArticleLike::getUser)
+                .toList();
+    }
+
 }

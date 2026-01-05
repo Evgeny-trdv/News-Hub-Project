@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity(name = "Users")
 public class User {
@@ -204,6 +207,7 @@ public class User {
     /**
      * вспомогательные методы
      * метод добавления пользовательского интереса к новостям
+     *
      * @param interest интерес в контексте новостей (спорт, политика и тд.)
      */
     public void addInterest(String interest) {
@@ -215,6 +219,7 @@ public class User {
 
     /**
      * метод удаления пользовательского интереса к новостям
+     *
      * @param interest интерес в контексте новостей (спорт, политика и тд.)
      */
     public void removeInterest(String interest) {
@@ -230,6 +235,30 @@ public class User {
         return this.interests != null &&
                 interest != null &&
                 this.interests.contains(interest);
+    }
+
+    /**
+     * метод проверка о том, что статья добавлена в избранное
+     * @param article новостная статья
+     * @return true/false
+     */
+    public boolean hasInFavorites(NewsArticle article) {
+        return this.favoriteArticles != null &&
+                this.favoriteArticles.contains(article);
+    }
+
+    /**
+     * метод для отметки о прочтении статьи
+     * @param article новостная статья
+     */
+    public void markIsRead(NewsArticle article) {
+        if (this.readArticles != null && this.readArticles.contains(article)) {
+            this.readArticles.add(article);
+            if (article.getReadBy() != null && article.getViewsCount() != null) {
+                article.getReadBy().add(this);
+                article.incrementViewsCount();
+            }
+        }
     }
 
     /**
@@ -249,6 +278,7 @@ public class User {
 
     /**
      * метод получения лайка к статье
+     *
      * @param article новостная статья
      * @return лайк на статью
      */
@@ -265,6 +295,7 @@ public class User {
 
     /**
      * метод добавления лайка к статье
+     *
      * @param article новостная статья
      * @return лайк на статью
      */
@@ -291,6 +322,7 @@ public class User {
 
     /**
      * метод удаления лайка к статье
+     *
      * @param article новостная статья
      */
     public void removeLikeToNewsArticle(NewsArticle article) {
@@ -302,6 +334,7 @@ public class User {
 
     /**
      * метод получения всех лайков пользователя
+     *
      * @return кол-во лайков
      */
     public int getCountLikes() {
@@ -312,6 +345,7 @@ public class User {
 
     /**
      * метод получения списка лайкнутых статей
+     *
      * @return список новостных статей, которые были лайкнуты
      */
     public List<NewsArticle> getListNewsArticleLiked() {
