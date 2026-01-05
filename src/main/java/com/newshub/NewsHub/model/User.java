@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity(name = "Users")
 public class User {
@@ -58,6 +56,9 @@ public class User {
     @Column(name = "user_score")
     private Integer userScore = 0;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ArticleLike> articleLikes = new HashSet<>();
+
     public User() {
     }
 
@@ -70,6 +71,7 @@ public class User {
         this.favoriteArticles = new HashSet<>();
         this.readArticles = new HashSet<>();
         this.userScore = 0;
+        this.articleLikes = new HashSet<>();
     }
 
     @PrePersist
@@ -191,25 +193,132 @@ public class User {
         this.readArticles = readArticles;
     }
 
+    public Set<ArticleLike> getLikes() {
+        return articleLikes;
+    }
+
+    public void setLikes(Set<ArticleLike> articleLikes) {
+        this.articleLikes = articleLikes;
+    }
+
     /**
      * вспомогательные методы
-     * @param interest интерес к контексте новостей (спорт, политика и тд.)
+     * метод добавления пользовательского интереса к новостям
+     * @param interest интерес в контексте новостей (спорт, политика и тд.)
      */
-    public void addCategory(String interest) {
+    public void addInterest(String interest) {
         if (this.interests == null) {
             this.interests = new HashSet<>();
         }
         this.interests.add(interest);
     }
 
-    public void removeCategory(String interest) {
+    /**
+     * метод удаления пользовательского интереса к новостям
+     * @param interest интерес в контексте новостей (спорт, политика и тд.)
+     */
+    public void removeInterest(String interest) {
         this.interests.remove(interest);
     }
 
+    /**
+     * булевский метод о существовании определенного интереса у пользователя
+     * @param interest интерес в контексте новостей (спорт, политика и тд.)
+     * @return true/false
+     */
     public boolean hasInterest(String interest) {
         return this.interests != null &&
                 interest != null &&
                 this.interests.contains(interest);
+    }
+
+    /**
+     * булевский метод о существовании лайка от пользователя к определённой новостной статье
+     * @param article новостная статья
+     * @return true/false
+     */
+    public boolean isLikedArticle(NewsArticle article) {
+        if (article == null) {
+            return false;
+        }
+
+        return this.articleLikes
+                .stream()
+                .anyMatch(like -> like.getNewsArticle().equals(article) && like.isLiked());
+    }
+
+    /**
+     * метод получения лайка к статье
+     * @param article новостная статья
+     * @return лайк на статью
+     */
+    public ArticleLike getArticleLike(NewsArticle article) {
+        if (article == null) {
+            return null;
+        }
+        return articleLikes
+                .stream()
+                .filter(articleLike -> articleLike.getNewsArticle().equals(article) && articleLike.isLiked())
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * метод добавления лайка к статье
+     * @param article новостная статья
+     * @return лайк на статью
+     */
+    public ArticleLike addLikeToNewsArticle(NewsArticle article) {
+        if (article == null) {
+            return null;
+        }
+        if (isLikedArticle(article)) {
+            ArticleLike existingLike = getArticleLike(article);
+            if (!existingLike.getLiked()) {
+                existingLike.restore();
+                return existingLike;
+            }
+        }
+
+        ArticleLike articleLike = new ArticleLike();
+        articleLike.setNewsArticle(article);
+        articleLike.setUser(this);
+        this.articleLikes.add(articleLike);
+        article.getLikes().add(articleLike);
+
+        return articleLike;
+    }
+
+    /**
+     * метод удаления лайка к статье
+     * @param article новостная статья
+     */
+    public void removeLikeToNewsArticle(NewsArticle article) {
+        if (isLikedArticle(article)) {
+            ArticleLike articleLike = getArticleLike(article);
+            articleLike.cancel();
+        }
+    }
+
+    /**
+     * метод получения всех лайков пользователя
+     * @return кол-во лайков
+     */
+    public int getCountLikes() {
+        return (int) this.articleLikes
+                .stream()
+                .filter(ArticleLike::isLiked).count();
+    }
+
+    /**
+     * метод получения списка лайкнутых статей
+     * @return
+     */
+    public List<NewsArticle> getListNewsArticleLiked() {
+        return articleLikes
+                .stream()
+                .filter(ArticleLike::isLiked)
+                .map(ArticleLike::getNewsArticle)
+                .toList();
     }
 
     @Override
