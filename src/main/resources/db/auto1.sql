@@ -19,7 +19,13 @@ INSERT INTO news_articles(id, added_at, author, category, content, external_id, 
 (4, '2024-12-25 14:34:00', 'A.K.Orange','SPORT', 'content 4', 'bbc_4',1, false,
  true, 'ru', 1, 'https://bbc.com', '2024-12-22 12:51:00', 'summary 4', 'title 4', 2, 1);
 
+INSERT INTO article_likes(id, liked, article_id, created_at, updated_at, user_id) VALUES
+(1, true, 1, '2025-01-03 12:11:03', '2025-01-03 12:11:03', 1),
+(2, true, 2, '2025-01-03 13:42:33', '2025-01-03 13:42:33', 1),
+(3, true, 3, '2025-01-03 13:42:33', '2025-01-03 13:42:33', 2);
+
 SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
 SELECT setval('news_articles_id_seq', (SELECT MAX(id) FROM news_articles));
 SELECT setval('news_source_id_seq', (SELECT MAX(id) FROM news_source));
+SELECT setval('article_likes_id_seq', (SELECT MAX(id) FROM article_likes));
 
