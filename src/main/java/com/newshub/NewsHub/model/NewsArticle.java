@@ -20,7 +20,6 @@ public class NewsArticle {
     @Column(name = "summary", columnDefinition = "TEXT")
     private String summary;
 
-    @Lob
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 

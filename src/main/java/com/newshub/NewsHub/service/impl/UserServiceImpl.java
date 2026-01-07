@@ -137,7 +137,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserResponseDTO(savedUser);
     }
 
-
     /**
      * Метод обновления данных пользователя
      * @param userId id пользователя
@@ -151,12 +150,14 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
         if (userRequestDTO.getUsername() != null &&
-                userRepository.existsByUsername(userRequestDTO.getUsername())) {
+                userRepository.existsByUsername(userRequestDTO.getUsername()) &&
+                !userRequestDTO.getUsername().equals(user.getUsername())) {
             throw new BusinessException("Username already exists" + userRequestDTO.getUsername());
         }
 
         if (userRequestDTO.getEmail() != null &&
-                userRepository.existsByEmail(userRequestDTO.getEmail())) {
+                userRepository.existsByEmail(userRequestDTO.getEmail()) &&
+                !userRequestDTO.getEmail().equals(user.getEmail())) {
             throw new BusinessException("Email already exists" + userRequestDTO.getEmail());
         }
 
