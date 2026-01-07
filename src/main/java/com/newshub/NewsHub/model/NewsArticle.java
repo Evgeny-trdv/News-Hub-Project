@@ -494,7 +494,7 @@ public class NewsArticle {
         return false;
     }
 
-    public List<User> getListUsersWHoLiked() {
+    public List<User> getListUsersWhoLiked() {
         return this.likes
                 .stream()
                 .filter(ArticleLike::isLiked)

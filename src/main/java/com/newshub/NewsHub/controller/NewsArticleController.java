@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/articles")
@@ -35,22 +36,34 @@ public class NewsArticleController {
         return newsArticleService.getAllNewsArticles(pageable).getContent();
     }
 
-    @GetMapping("/by-category{category}")
+    @GetMapping("/category/{category}")
     @Operation(summary = "Get all news article by category")
     public List<NewsArticleResponseDTO> getNewsArticlesByCategory(@PathVariable String category, @PageableDefault(page = 0, size = 3) Pageable pageable) {
         return newsArticleService.getNewsArticlesByCategory(category, pageable).getContent();
     }
 
-    @GetMapping("/by-source{sourceId}")
+    @GetMapping("/source/{sourceId}")
     @Operation(summary = "Get all news article by source")
     public List<NewsArticleResponseDTO> getNewsArticlesBySource(@PathVariable Long sourceId, @PageableDefault(page = 0, size = 3) Pageable pageable) {
         return newsArticleService.getNewsArticlesBySource(sourceId, pageable).getContent();
     }
 
-    @GetMapping("/is-popular")
-    @Operation(summary = "Get all news article are popular")
-    public List<NewsArticleResponseDTO> getNewsArticlesBySource(@PageableDefault(page = 0, size = 3) Pageable pageable) {
+    @GetMapping("/tags")
+    @Operation(summary = "Get all news article by tags")
+    public List<NewsArticleResponseDTO> getNewsArticlesByTags(@RequestParam Set<String> tags, @PageableDefault(page = 0, size = 3) Pageable pageable) {
+        return newsArticleService.getNewsArticleByTags(tags, pageable).getContent();
+    }
+
+    @GetMapping("/popular")
+    @Operation(summary = "Get all popular news article")
+    public List<NewsArticleResponseDTO> getNewsArticlesPopular(@PageableDefault(page = 0, size = 3) Pageable pageable) {
         return newsArticleService.getNewsArticlesByIsPopular(pageable).getContent();
+    }
+
+    @GetMapping("/fresh")
+    @Operation(summary = "Get all fresh news article")
+    public List<NewsArticleResponseDTO> getNewsArticlesFresh(@PageableDefault(page = 0, size = 3) Pageable pageable) {
+        return newsArticleService.getFreshNewsArticles(pageable).getContent();
     }
 
     @PostMapping()
@@ -72,4 +85,31 @@ public class NewsArticleController {
     public void deleteNewsArticle(@PathVariable Long articleId) {
         newsArticleService.deleteNewsArticle(articleId);
     }
+
+    @GetMapping("/feed/{userId}")
+    @Operation(summary = "Get news feed for user")
+    public List<NewsArticleResponseDTO> getNewsFeedForUser(@PathVariable Long userId, @PageableDefault(page = 0, size = 5) Pageable pageable) {
+        return newsArticleService.getUserFeed(userId, pageable).getContent();
+    }
+
+    @PostMapping("/{articleId}/favorites")
+    @Operation(summary = "Add article to favorites")
+    @ResponseStatus(HttpStatus.CREATED)
+    public NewsArticleResponseDTO addNewsArticleToFavorites(@PathVariable Long articleId, @RequestParam Long userId) {
+        return newsArticleService.addToFavorites(articleId, userId);
+    }
+
+    @DeleteMapping("/{articleId}/favorites")
+    @Operation(summary = "Remove article from favorites")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeNewsArticleFromFavorites(@PathVariable Long articleId, @RequestParam Long userId) {
+        newsArticleService.removeFromFavorites(articleId, userId);
+    }
+
+    @GetMapping("/{articleId}/read")
+    @Operation(summary = "Reading article by user")
+    public void readNewsArticle(@PathVariable Long articleId, @RequestParam Long userId) {
+        newsArticleService.markAsRead(articleId, userId);
+    }
+
 }

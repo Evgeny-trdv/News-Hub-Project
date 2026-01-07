@@ -34,6 +34,7 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
     @Query(value = "SELECT * FROM news_articles WHERE is_popular = TRUE", nativeQuery = true)
     public Page<NewsArticle> findNewsArticlesByIsPopularTrue(Pageable pageable);
 
-
+    @Query(value = "SELECT * FROM news_article WHERE tags IN : tags ORDER BY published_at DESC", nativeQuery = true)
+    public Page<NewsArticle> findByTags(@NotNull @Param("tags") Set<String> tags, @NotNull Pageable pageable);
 
 }

@@ -2,6 +2,7 @@ package com.newshub.NewsHub.service.impl;
 
 import com.newshub.NewsHub.dto.articleDTO.NewsArticleRequestDTO;
 import com.newshub.NewsHub.dto.articleDTO.NewsArticleResponseDTO;
+import com.newshub.NewsHub.dto.feedDTO.FeedDto;
 import com.newshub.NewsHub.dto.feedDTO.FeedRequestDTO;
 import com.newshub.NewsHub.exception.BusinessException;
 import com.newshub.NewsHub.exception.ResourceNotFoundException;
@@ -15,15 +16,14 @@ import com.newshub.NewsHub.repository.UserRepository;
 import com.newshub.NewsHub.service.NewsArticleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Сервис для работы с новостными статьями (NewsArticle)
@@ -176,22 +176,95 @@ public class NewsArticleServiceImpl implements NewsArticleService {
     }
 
     /**
+     * метод добавления статьи в избранное
+     * @param newsArticleId id новостной статьи
+     * @param userId id пользователя
+     * @return DTO новостной статьи для получения ответа
+     */
+    @Override
+    @Transactional
+    public NewsArticleResponseDTO addToFavorites(Long newsArticleId, Long userId) {
+        NewsArticle articleForAddingFavorites = newsArticleRepository.findById(newsArticleId)
+                .orElseThrow(() -> new ResourceNotFoundException("NewsArticle", "id", newsArticleId));
+
+        User userWhoAdding = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        if (userWhoAdding.hasInFavorites(articleForAddingFavorites)) {
+            throw new BusinessException("User already has favorites");
+        }
+
+        articleForAddingFavorites.getFavoritedBy().add(userWhoAdding);
+        articleForAddingFavorites.incrementFavoritesCount();
+        userWhoAdding.getFavoriteArticles().add(articleForAddingFavorites);
+
+        newsArticleRepository.save(articleForAddingFavorites);
+        userRepository.save(userWhoAdding);
+
+        return newsArticleMapper.toNewsArticleResponseDTO(articleForAddingFavorites);
+    }
+
+    /**
+     * метод удаления статьи из избранного
+     * @param newsArticleId id новостной статьи
+     * @param userId id пользователя
+     */
+    @Override
+    @Transactional
+    public void removeFromFavorites(Long newsArticleId, Long userId) {
+        NewsArticle articleForRemovingFavorites = newsArticleRepository.findById(newsArticleId)
+                .orElseThrow(() -> new ResourceNotFoundException("NewsArticle", "id", newsArticleId));
+
+        User userWhoRemoving = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        if (!userWhoRemoving.hasInFavorites(articleForRemovingFavorites)) {
+            throw new BusinessException("User does not have favorites");
+        }
+
+        if (userWhoRemoving.hasInFavorites(articleForRemovingFavorites)) {
+            articleForRemovingFavorites.getFavoritedBy().remove(userWhoRemoving);
+            articleForRemovingFavorites.decrementFavoritesCount();
+            userWhoRemoving.getFavoriteArticles().remove(articleForRemovingFavorites);
+
+            newsArticleRepository.save(articleForRemovingFavorites);
+            userRepository.save(userWhoRemoving);
+        }
+    }
+
+    /**
+     * метод для отметки о прочтении пользователем новостной статьи
+     * @param newsArticleId id новостной статьи
+     * @param userId id пользователя
+     */
+    @Override
+    @Transactional
+    public void markAsRead(Long newsArticleId, Long userId) {
+        NewsArticle articleForRemovingFavorites = newsArticleRepository.findById(newsArticleId)
+                .orElseThrow(() -> new ResourceNotFoundException("NewsArticle", "id", newsArticleId));
+
+        User userWhoRead = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        userWhoRead.markIsRead(articleForRemovingFavorites);
+
+        userRepository.save(userWhoRead);
+        newsArticleRepository.save(articleForRemovingFavorites);
+    }
+
+    /**
      * Метод формирования ленты новостей на основе интересов пользователя
      * @param userId id пользователя
-     * @param feedRequest запрос ленты новостей
-     * @return
+     * @param pageable объект постраничного запроса
+     * @return список всех DTO новостей по странично
      */
+    @Override
     @Transactional
-    public Page<NewsArticleResponseDTO> getUserFeed(Long userId, FeedRequestDTO feedRequest) {
-        //1. найти пользователя
+    public Page<NewsArticleResponseDTO> getUserFeed(Long userId, Pageable pageable) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        //2. список интересов пользователя
         Set<String> interestsUser = Set.copyOf(user.getInterests());
-
-        Sort sort = Sort.by(Sort.Direction.fromString(feedRequest.getSortDirection()), feedRequest.getSortBy());
-        Pageable pageable = PageRequest.of(feedRequest.getPage(), feedRequest.getSize(), sort);
 
         if (interestsUser != null && !interestsUser.isEmpty()) {
             Page<NewsArticle> foundNewsArticles = newsArticleRepository
@@ -202,6 +275,24 @@ public class NewsArticleServiceImpl implements NewsArticleService {
                     .findAll(pageable);
             return allNewsArticles.map(newsArticleMapper::toNewsArticleResponseDTO);
         }
-
     }
+
+    @Override
+    public Page<NewsArticleResponseDTO> getFreshNewsArticles(Pageable pageable) {
+        List<NewsArticle> articleList = newsArticleRepository.findAll();
+        for (NewsArticle article : articleList) {
+            if (!article.isFresh()) {
+                articleList.remove(article);
+            }
+        }
+        PageImpl<NewsArticle> page = new PageImpl<>(articleList, pageable, articleList.size());
+        return page.map(newsArticleMapper::toNewsArticleResponseDTO);
+    }
+
+    @Override
+    public Page<NewsArticleResponseDTO> getNewsArticleByTags(Set<String> tags, Pageable pageable) {
+        Page<NewsArticle> pageArticleByTags = newsArticleRepository.findByTags(tags, pageable);
+        return pageArticleByTags.map(newsArticleMapper::toNewsArticleResponseDTO);
+    }
+
 }
