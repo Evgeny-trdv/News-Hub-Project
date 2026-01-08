@@ -452,28 +452,22 @@ public class NewsArticle {
      * @param user пользователь
      * @return лайк на статью (существующий/вновь созданный)
      */
-    public ArticleLike addArticleLikeByUser(User user) {
+    public void addArticleLikeByUser(User user, ArticleLike like) {
         if (user == null || likes == null) {
-            return null;
+            return;
         }
         if (isLikedUser(user)) {
             ArticleLike existingLike = getArticleLikeByUser(user);
-            if (!existingLike.isLiked()) {
+            if (!existingLike.isLiked() && existingLike.equals(like)) {
                 existingLike.restore();
                 updateLikesCount();
+                return;
             }
-            return existingLike;
+            return;
         }
         ArticleLike newLike = new ArticleLike();
-
-        newLike.setUser(user);
-        user.getArticleLikes().add(newLike);
-
-        newLike.setArticle(this);
         this.likes.add(newLike);
-
         updateLikesCount();
-        return newLike;
     }
 
     /**

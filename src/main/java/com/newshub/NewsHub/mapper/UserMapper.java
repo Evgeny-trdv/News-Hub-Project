@@ -3,11 +3,7 @@ package com.newshub.NewsHub.mapper;
 import com.newshub.NewsHub.dto.userDTO.UserRequestDTO;
 import com.newshub.NewsHub.dto.userDTO.UserResponseDTO;
 import com.newshub.NewsHub.model.User;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Преобразование сущности User в UserDTO
@@ -21,7 +17,7 @@ public class UserMapper {
 
         user.setUsername(userRequestDTO.getUsername());
         user.setEmail(userRequestDTO.getEmail());
-        user.setPassword(userRequestDTO.getPassword());
+        user.setPasswordHash(userRequestDTO.getPassword());
 
         if (userRequestDTO.getInterests() != null) {
             user.setInterests(userRequestDTO.getInterests());
