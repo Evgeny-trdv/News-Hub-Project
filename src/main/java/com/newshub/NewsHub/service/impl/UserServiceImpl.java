@@ -44,6 +44,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения пользователя (DTO) с помощью id
+     *
      * @param userId id пользователя
      * @return UserResponseDTO, DTO пользователя для получения ответа
      */
@@ -61,6 +62,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения пользователя (DTO) с помощью id
+     *
      * @param username username пользователя
      * @return UserResponseDTO, DTO пользователя для получения ответа
      */
@@ -75,6 +77,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения списка всех пользователей
+     *
      * @return список пользователей (user)
      */
     @Override
@@ -96,6 +99,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения списка всех пользователей через пагинацию (по странично)
+     *
      * @param pageable объект постраничного запроса
      * @return список пользователей (user)
      */
@@ -107,6 +111,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод создания (сохранения) пользователя в базу данных
+     *
      * @param userRequestDTO DTO пользователя для создания/обновления
      * @return DTO пользователя для получения ответа
      */
@@ -139,7 +144,8 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод обновления данных пользователя
-     * @param userId id пользователя
+     *
+     * @param userId         id пользователя
      * @param userRequestDTO DTO пользователя для создания/обновления
      * @return DTO пользователя для получения ответа
      */
@@ -174,7 +180,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if (userRequestDTO.getPassword() != null) {
-            user.setPassword(userRequestDTO.getPassword());
+            user.setPasswordHash(userRequestDTO.getPassword());
         }
 
         if (userRequestDTO.getInterests() != null) {
@@ -188,6 +194,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод удаления пользователя из базы данных
+     *
      * @param userId id пользователя
      */
     @Override
@@ -203,19 +210,21 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод пометки для удаления пользователя
+     *
      * @param userId id пользователя
      */
     @Override
     @Transactional
     public void deleteUserWithAbilityReturn(Long userId) {
         User userForDeleted = findUserById(userId);
-        userForDeleted.setStatus(UserStatus.DELETED);
+        userForDeleted.setStatus(UserStatus.TIME_DELETED);
         userRepository.save(userForDeleted);
     }
 
     /**
      * Метод добавления новостного интереса пользователя
-     * @param userId id пользователя
+     *
+     * @param userId   id пользователя
      * @param interest новостной интерес
      * @return DTO пользователя для получения ответа
      */
@@ -230,7 +239,8 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод удаления новостного интереса пользователя
-     * @param userId id пользователя
+     *
+     * @param userId   id пользователя
      * @param interest новостной интерес
      * @return DTO пользователя для получения ответа
      */
@@ -245,6 +255,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения множества новостных интересов пользователя
+     *
      * @param userId id пользователя
      * @return DTO пользователя для получения ответа
      */
@@ -260,7 +271,7 @@ public class UserServiceImpl implements UserService {
     @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void deleteUserForScheduled() {
-        List<User> listUsersForDeleted = userRepository.listUserForDeleteWithStatusDeleted();
+        List<User> listUsersForDeleted = userRepository.listUserForDeleteWithStatusTimeDeleted();
 
         for (User user : listUsersForDeleted) {
             logger.info("User {} deleted to database", user.getId());
