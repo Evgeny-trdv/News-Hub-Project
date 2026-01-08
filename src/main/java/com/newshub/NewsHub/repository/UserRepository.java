@@ -19,6 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
 
-    @Query(value = "SELECT * FROM users WHERE user_status = 'DELETED'", nativeQuery = true)
-    List<User> listUserForDeleteWithStatusDeleted();
+    @Query(value = "SELECT * FROM users WHERE user_status = 'TIME_DELETED'", nativeQuery = true)
+    List<User> listUserForDeleteWithStatusTimeDeleted();
 }
