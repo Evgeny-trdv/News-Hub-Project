@@ -2,31 +2,33 @@ package com.newshub.NewsHub.model;
 
 import jakarta.persistence.*;
 import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity(name = "Users")
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "username")
+    @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    @Column(name = "email")
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     @Column(name = "password")
-    private String password;
+    private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "user_status")
+    @Column(name = "user_status", nullable = false)
     private UserStatus status;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -62,19 +64,71 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ArticleLike> articleLikes = new HashSet<>();
 
+    /**
+     * Флаг, указывающий, что учетная запись не просрочена.
+     * Используется Spring Security.
+     */
+    @Column(name = "account_non_expired", nullable = false)
+    private Boolean accountNonExpired = true;
+
+    /**
+     * Флаг, указывающий, что учетная запись не заблокирована.
+     * Используется Spring Security.
+     */
+    @Column(name = "account_non_locked", nullable = false)
+    private Boolean accountNonLocked = true;
+
+    /**
+     * Флаг, указывающий, что учетные данные не просрочены.
+     * Используется Spring Security.
+     */
+    @Column(name = "credentials_non_expired", nullable = false)
+    private Boolean credentialsNonExpired = true;
+
+    /**
+     * Флаг, указывающий, что учетная запись активна.
+     * Используется Spring Security.
+     */
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = true;
+
+    /**
+     * Токен для сброса пароля.
+     * Генерируется при запросе сброса пароля.
+     */
+    @Column(name = "reset_password_token", length = 255)
+    private String resetPasswordToken;
+
+    /**
+     * Срок действия токена сброса пароля.
+     */
+    @Column(name = "reset_password_token_expiry")
+    private LocalDateTime resetPasswordTokenExpiry;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Set<Role> roles = new HashSet<>();
+
     public User() {
     }
 
-    public User(String username, String email, String password) {
+    public User(String username, String email, String passwordHash) {
         this.username = username;
         this.email = email;
-        this.password = password;
+        this.passwordHash = passwordHash;
         this.status = UserStatus.ACTIVE;
-        this.interests = new HashSet<>();
-        this.favoriteArticles = new HashSet<>();
-        this.readArticles = new HashSet<>();
+        this.interests = new HashSet<>();;
+        this.favoriteArticles = new HashSet<>();;
+        this.readArticles = new HashSet<>();;
         this.userScore = 0;
-        this.articleLikes = new HashSet<>();
+        this.articleLikes = new HashSet<>();;
+        this.accountNonExpired = true;
+        this.accountNonLocked = true;
+        this.credentialsNonExpired = true;
+        this.enabled = true;
+        this.roles.add(Role.USER_ROLE);
     }
 
     @PrePersist
@@ -84,11 +138,9 @@ public class User {
 
         if (this.interests != null && !this.interests.isEmpty()) {
             Set<String> formatedInterests = new HashSet<>();
-
             for (String interest : this.interests) {
                 formatedInterests.add(StringUtils.capitalize(interest.trim().toLowerCase()));
             }
-
             this.interests.clear();
             this.interests.addAll(formatedInterests);
         }
@@ -101,11 +153,52 @@ public class User {
         if (this.status == null) {
             this.status = UserStatus.ACTIVE;
         }
+
+        if (this.roles == null || this.roles.isEmpty()) {
+            this.roles = new HashSet<>();
+            this.roles.add(Role.USER_ROLE);
+        }
     }
 
     @PreUpdate
     private void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return this.accountNonExpired && status != UserStatus.DELETED;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return this.accountNonLocked && status != UserStatus.BLOCKED;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return this.credentialsNonExpired;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.enabled && status == UserStatus.ACTIVE;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public @Nullable String getPassword() {
+        return passwordHash;
+    }
+
+    public  String getUsername() {
+        return username;
     }
 
     public Long getId() {
@@ -114,10 +207,6 @@ public class User {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public void setUsername(String username) {
@@ -132,12 +221,12 @@ public class User {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPasswordHash(String password) {
+        this.passwordHash = password;
     }
 
     public UserStatus getStatus() {
@@ -204,10 +293,125 @@ public class User {
         this.articleLikes = articleLikes;
     }
 
+    public Boolean getAccountNonExpired() {
+        return accountNonExpired;
+    }
+
+    public void setAccountNonExpired(Boolean accountNonExpired) {
+        this.accountNonExpired = accountNonExpired;
+    }
+
+    public Boolean getAccountNonLocked() {
+        return accountNonLocked;
+    }
+
+    public void setAccountNonLocked(Boolean accountNonLocked) {
+        this.accountNonLocked = accountNonLocked;
+    }
+
+    public Boolean getCredentialsNonExpired() {
+        return credentialsNonExpired;
+    }
+
+    public void setCredentialsNonExpired(Boolean credentialsNonExpired) {
+        this.credentialsNonExpired = credentialsNonExpired;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public String getResetPasswordToken() {
+        return resetPasswordToken;
+    }
+
+    public void setResetPasswordToken(String resetPasswordToken) {
+        this.resetPasswordToken = resetPasswordToken;
+    }
+
+    public LocalDateTime getResetPasswordTokenExpiry() {
+        return resetPasswordTokenExpiry;
+    }
+
+    public void setResetPasswordTokenExpiry(LocalDateTime resetPasswordTokenExpiry) {
+        this.resetPasswordTokenExpiry = resetPasswordTokenExpiry;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
     /**
-     * вспомогательные методы
+     * вспомогательные методы для Spring Security
+     * метод генерации токена для сброса пароля
+     */
+    public void generateResetPasswordToken() {
+        this.resetPasswordToken = UUID.randomUUID().toString();
+        this.resetPasswordTokenExpiry = LocalDateTime.now().plusHours(24);
+    }
+
+    /**
+     * метод очистки токена для сброса пароля
+     */
+    public void cleatResetPasswordToken() {
+        this.resetPasswordToken = null;
+        this.resetPasswordTokenExpiry = null;
+    }
+
+    /**
+     * метод проверки для готовности сброса пароля
+     * @return true/false
+     */
+    public boolean isResetPasswordTokenValid() {
+        return this.resetPasswordToken != null &&
+                this.resetPasswordTokenExpiry != null &&
+                this.resetPasswordTokenExpiry.isAfter(LocalDateTime.now());
+    }
+
+    /**
+     * метод добавления роли для пользователя
+     */
+    public void addRole(Role role) {
+        if (this.roles == null) {
+            this.roles = new HashSet<>();
+            this.roles.add(role);
+        }
+    }
+
+    /**
+     * метод удаления роли у пользователя
+     */
+    public void removeRole(Role role) {
+        if (this.roles != null) {
+            this.roles.remove(role);
+        }
+    }
+
+    /**
+     * метод проверки пользователя на указанную роль.
+     */
+    public boolean hasRole(Role role) {
+        return this.roles != null && this.roles.contains(role);
+    }
+
+    /**
+     * метод проверки пользователя на права администратора.
+     */
+    public boolean isAdmin() {
+        return hasRole(Role.ADMIN_ROLE);
+    }
+
+    /**
+     * вспомогательные методы для полей
      * метод добавления пользовательского интереса к новостям
-     *
      * @param interest интерес в контексте новостей (спорт, политика и тд.)
      */
     public void addInterest(String interest) {
@@ -295,46 +499,25 @@ public class User {
 
     /**
      * метод добавления лайка к статье
-     *
      * @param article новостная статья
-     * @return лайк на статью
      */
-    public ArticleLike addLikeToNewsArticle(NewsArticle article) {
-        if (article == null) {
-            return null;
+    public void addLikeToNewsArticle(NewsArticle article, ArticleLike like) {
+        if (article == null || like == null) {
+            return;
         }
         if (isLikedArticle(article)) {
             ArticleLike existingLike = getArticleLike(article);
-            if (!existingLike.getLiked()) {
+            if (!existingLike.getLiked() && existingLike.equals(like)) {
                 existingLike.restore();
-                return existingLike;
+                return;
             }
+            return;
         }
-
-        ArticleLike articleLike = new ArticleLike();
-        articleLike.setArticle(article);
-        articleLike.setUser(this);
-        this.articleLikes.add(articleLike);
-        article.getLikes().add(articleLike);
-
-        return articleLike;
-    }
-
-    /**
-     * метод удаления лайка к статье
-     *
-     * @param article новостная статья
-     */
-    public void removeLikeToNewsArticle(NewsArticle article) {
-        if (isLikedArticle(article)) {
-            ArticleLike articleLike = getArticleLike(article);
-            articleLike.cancel();
-        }
+        this.articleLikes.add(like);
     }
 
     /**
      * метод получения всех лайков пользователя
-     *
      * @return кол-во лайков
      */
     public int getCountLikes() {
@@ -345,7 +528,6 @@ public class User {
 
     /**
      * метод получения списка лайкнутых статей
-     *
      * @return список новостных статей, которые были лайкнуты
      */
     public List<NewsArticle> getListNewsArticleLiked() {
@@ -361,12 +543,12 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(username, user.username);
+        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username);
+        return Objects.hash(id, username, email);
     }
 
     @Override
@@ -375,15 +557,6 @@ public class User {
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                ", status=" + status +
-                ", interests=" + interests +
-                ", favoriteArticles=" + favoriteArticles +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", userScore=" + userScore +
                 '}';
     }
-
-
 }

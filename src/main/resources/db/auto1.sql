@@ -1,9 +1,9 @@
-INSERT INTO users (id, created_at, email, password, user_status, updated_at, user_score, username) VALUES
-(1, '2025-01-02 10:30:00', 'ev@mail.ru', 'zxc', 'ACTIVE', '2025-01-03 10:30:00', 0, 'Evgeny'),
-(2, '2025-01-03 10:30:00', 'AQ@mail.ru', 'zxc', 'ACTIVE', '2025-01-04 10:30:00', 0, 'Alex'),
-(3, '2025-01-01 10:30:00', 'qqqq@mail.ru', 'zxc', 'ACTIVE', '2025-01-04 10:30:00', 0, 'GLoria'),
-(4, '2024-12-29 10:30:00', 'c1_c1@mail.ru', 'zxc', 'ACTIVE', '2025-01-01 10:30:00', 0, 'Timur'),
-(5, '2024-12-30 10:30:00', 'well_9@mail.ru', 'zxc', 'ACTIVE', '2025-01-02 10:30:00', 0, 'Sarah');
+INSERT INTO users (account_non_expired, account_non_locked, credentials_non_expired, enabled, reset_password_token, reset_password_token_expiry, id, created_at, email, password, user_status, updated_at, user_score, username) VALUES
+(true, true, true, true, null, null, 1, '2025-01-02 10:30:00', 'ev@mail.ru', 'zxc', 'ACTIVE', '2025-01-03 10:30:00', 0, 'Evgeny'),
+(true, true, true, true, null, null,2, '2025-01-03 10:30:00', 'AQ@mail.ru', 'zxc', 'ACTIVE', '2025-01-04 10:30:00', 0, 'Alex'),
+(true, true, true, true, null, null,3, '2025-01-01 10:30:00', 'qqqq@mail.ru', 'zxc', 'ACTIVE', '2025-01-04 10:30:00', 0, 'GLoria'),
+(true, true, true, true, null, null,4, '2024-12-29 10:30:00', 'c1_c1@mail.ru', 'zxc', 'ACTIVE', '2025-01-01 10:30:00', 0, 'Timur'),
+(true, true, true, true, null, null,5, '2024-12-30 10:30:00', 'well_9@mail.ru', 'zxc', 'ACTIVE', '2025-01-02 10:30:00', 0, 'Sarah');
 
 INSERT INTO news_source(id, articles_count, country, created_at, description, is_active, language, last_parsed_at, logo_url, name, primary_category, rss_feed_url, slug, trust_score, update_frequency, updated_at, website_url) VALUES
     (1, 4, 'Russia', '2024-12-25 14:33:00', 'description 1', true, 'ru', null, 'logo_url_1', 'BBC news',
