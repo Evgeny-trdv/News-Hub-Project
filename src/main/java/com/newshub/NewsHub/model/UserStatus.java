@@ -1,8 +1,8 @@
 package com.newshub.NewsHub.model;
 
 public enum UserStatus {
-    ACTIVE,
-    BLOCKED,
-    DELETED,
-    TIME_DELETED
+    ACTIVE,         //активный пользователь
+    BLOCKED,        //заблокированный пользователь
+    DELETED,        //пользователь удален
+    TIME_DELETED    //временно удален, с возможностью восстановления
 }

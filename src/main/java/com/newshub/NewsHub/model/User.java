@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity(name = "Users")
 public class User implements UserDetails {
@@ -185,7 +187,9 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.name()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -509,20 +513,7 @@ public class User implements UserDetails {
             }
             return;
         }
-        like.setArticle(article);
-        like.setUser(this);
         this.articleLikes.add(like);
-    }
-
-    /**
-     * метод удаления лайка к статье
-     * @param article новостная статья
-     */
-    public void removeLikeToNewsArticle(NewsArticle article) {
-        if (isLikedArticle(article)) {
-            ArticleLike articleLike = getArticleLike(article);
-            articleLike.cancel();
-        }
     }
 
     /**
@@ -552,12 +543,12 @@ public class User implements UserDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(username, user.username);
+        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username);
+        return Objects.hash(id, username, email);
     }
 
     @Override
@@ -566,15 +557,6 @@ public class User implements UserDetails {
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
-                ", password='" + passwordHash + '\'' +
-                ", status=" + status +
-                ", interests=" + interests +
-                ", favoriteArticles=" + favoriteArticles +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", userScore=" + userScore +
                 '}';
     }
-
-
 }

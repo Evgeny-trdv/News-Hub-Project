@@ -465,26 +465,19 @@ public class NewsArticle {
             }
             return;
         }
-        ArticleLike newLike = new ArticleLike();
-        this.likes.add(newLike);
+        this.likes.add(like);
         updateLikesCount();
     }
 
     /**
      * метод удаления лайка к статье определённого пользователя
      * @param user пользователь
-     * @return true/false
      */
-    public boolean removeArticleLikeByUser(User user) {
+    public void removeArticleLikeByUser(User user) {
         if (user == null || likes == null) {
-            return false;
+            return;
         }
-        if (isLikedUser(user)) {
-            ArticleLike existingLike = getArticleLikeByUser(user);
-            existingLike.cancel();
-            updateLikesCount();
-        }
-        return false;
+        updateLikesCount();
     }
 
     public List<User> getListUsersWhoLiked() {
