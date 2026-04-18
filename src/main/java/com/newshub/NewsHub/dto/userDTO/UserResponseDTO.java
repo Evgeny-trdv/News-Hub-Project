@@ -14,6 +14,7 @@ public class UserResponseDTO {
     private Long id;
     private String username;
     private String email;
+    private String displayName;
     private UserStatus status;
     private Set<String> interests;
     private LocalDateTime createdAt;
@@ -21,10 +22,11 @@ public class UserResponseDTO {
     public UserResponseDTO() {
     }
 
-    public UserResponseDTO(Long id, String username, String email, UserStatus status, Set<String> interests, LocalDateTime createdAt) {
+    public UserResponseDTO(Long id, String username, String email, String displayName, UserStatus status, Set<String> interests, LocalDateTime createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
+        this.displayName = displayName;
         this.status = status;
         this.interests = interests;
         this.createdAt = createdAt;
@@ -52,6 +54,14 @@ public class UserResponseDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public UserStatus getStatus() {

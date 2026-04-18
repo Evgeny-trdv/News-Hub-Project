@@ -1,6 +1,6 @@
 package com.newshub.NewsHub.service.impl;
 
-import com.newshub.NewsHub.dto.userDTO.UserRequestDTO;
+import com.newshub.NewsHub.dto.userDTO.UserCreateUpdateRequestDto;
 import com.newshub.NewsHub.dto.userDTO.UserResponseDTO;
 import com.newshub.NewsHub.exception.BusinessException;
 import com.newshub.NewsHub.exception.ResourceNotFoundException;
@@ -8,7 +8,7 @@ import com.newshub.NewsHub.mapper.UserMapper;
 import com.newshub.NewsHub.model.User;
 import com.newshub.NewsHub.model.UserStatus;
 import com.newshub.NewsHub.repository.UserRepository;
-import com.newshub.NewsHub.service.UserService;
+import com.newshub.NewsHub.service.UserToAdminService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,18 +26,19 @@ import java.util.regex.Pattern;
 
 /**
  * Сервис для работы с пользователями (User)
+ * функции администрирования
  */
 @Service
-public class UserServiceImpl implements UserService {
+public class UserToAdminServiceImpl implements UserToAdminService {
 
     private static final String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     private static final Pattern PATTERN = Pattern.compile(EMAIL_REGEX);
-    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserToAdminServiceImpl.class);
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
+    public UserToAdminServiceImpl(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
     }
@@ -47,6 +48,7 @@ public class UserServiceImpl implements UserService {
      *
      * @param userId id пользователя
      * @return UserResponseDTO, DTO пользователя для получения ответа
+     * Admin
      */
     @Override
     public UserResponseDTO getUser(Long userId) {
@@ -65,6 +67,7 @@ public class UserServiceImpl implements UserService {
      *
      * @param username username пользователя
      * @return UserResponseDTO, DTO пользователя для получения ответа
+     * Admin
      */
     @Override
     public UserResponseDTO getUser(String username) {
@@ -79,6 +82,7 @@ public class UserServiceImpl implements UserService {
      * Метод получения списка всех пользователей
      *
      * @return список пользователей (user)
+     * Admin
      */
     @Override
     public List<UserResponseDTO> getAllUsers() {
@@ -102,6 +106,7 @@ public class UserServiceImpl implements UserService {
      *
      * @param pageable объект постраничного запроса
      * @return список пользователей (user)
+     * Admin
      */
     @Override
     public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
@@ -112,29 +117,30 @@ public class UserServiceImpl implements UserService {
     /**
      * Метод создания (сохранения) пользователя в базу данных
      *
-     * @param userRequestDTO DTO пользователя для создания/обновления
+     * @param userCreateDto DTO пользователя для создания/обновления
      * @return DTO пользователя для получения ответа
+     * Admin
      */
     @Override
     @Transactional
-    public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
-        if (userRequestDTO == null) {
+    public UserResponseDTO createUser(UserCreateUpdateRequestDto userCreateDto) {
+        if (userCreateDto == null) {
             throw new BusinessException("UserRequestDTO is null");
         }
 
-        if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
-            throw new BusinessException("Username already exists" + userRequestDTO.getUsername());
+        if (userRepository.existsByUsername(userCreateDto.getUsername())) {
+            throw new BusinessException("Username already exists");
         }
 
-        if (!validateEmail(userRequestDTO.getEmail())) {
-            throw new BusinessException("Email is not valid" + userRequestDTO.getEmail());
+        if (userRepository.existsByEmail(userCreateDto.getEmail())) {
+            throw new ResourceNotFoundException("Email already exists" + userCreateDto.getEmail());
         }
 
-        if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
-            throw new ResourceNotFoundException("Email already exists" + userRequestDTO.getEmail());
+        if (!validateEmail(userCreateDto.getEmail())) {
+            throw new BusinessException("Email is not valid" + userCreateDto.getEmail());
         }
 
-        User savedUser = userMapper.toUserEntity(userRequestDTO);
+        User savedUser = userMapper.toUserEntity(userCreateDto);
         userRepository.save(savedUser);
 
         logger.info("User {} saved to database", savedUser);
@@ -144,47 +150,37 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод обновления данных пользователя
-     *
-     * @param userId         id пользователя
-     * @param userRequestDTO DTO пользователя для создания/обновления
+     * Admin
+     * @param userId id пользователя
+     * @param userUpdateRequestDTO DTO пользователя для создания/обновления
      * @return DTO пользователя для получения ответа
      */
     @Override
     @Transactional
-    public UserResponseDTO updateUser(Long userId, UserRequestDTO userRequestDTO) {
+    public UserResponseDTO updateUser(Long userId, UserCreateUpdateRequestDto userUpdateRequestDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        if (userRequestDTO.getUsername() != null &&
-                userRepository.existsByUsername(userRequestDTO.getUsername()) &&
-                !userRequestDTO.getUsername().equals(user.getUsername())) {
-            throw new BusinessException("Username already exists" + userRequestDTO.getUsername());
+        if (userUpdateRequestDTO.getEmail() != null &&
+                userRepository.existsByEmail(userUpdateRequestDTO.getEmail()) &&
+                !userUpdateRequestDTO.getEmail().equals(user.getEmail())) {
+            throw new BusinessException("Email already exists" + userUpdateRequestDTO.getEmail());
         }
 
-        if (userRequestDTO.getEmail() != null &&
-                userRepository.existsByEmail(userRequestDTO.getEmail()) &&
-                !userRequestDTO.getEmail().equals(user.getEmail())) {
-            throw new BusinessException("Email already exists" + userRequestDTO.getEmail());
+        if (!validateEmail(userUpdateRequestDTO.getEmail())) {
+            throw new BusinessException("Email is not valid" + userUpdateRequestDTO.getEmail());
         }
 
-        if (!validateEmail(userRequestDTO.getEmail())) {
-            throw new BusinessException("Email is not valid" + userRequestDTO.getEmail());
+        if (userUpdateRequestDTO.getDisplayName() != null) {
+            user.setUsername(userUpdateRequestDTO.getDisplayName());
         }
 
-        if (userRequestDTO.getUsername() != null) {
-            user.setUsername(userRequestDTO.getUsername());
+        if (userUpdateRequestDTO.getEmail() != null) {
+            user.setEmail(userUpdateRequestDTO.getEmail());
         }
 
-        if (userRequestDTO.getEmail() != null) {
-            user.setEmail(userRequestDTO.getEmail());
-        }
-
-        if (userRequestDTO.getPassword() != null) {
-            user.setPasswordHash(userRequestDTO.getPassword());
-        }
-
-        if (userRequestDTO.getInterests() != null) {
-            user.setInterests(userRequestDTO.getInterests());
+        if (userUpdateRequestDTO.getInterests() != null) {
+            user.setInterests(userUpdateRequestDTO.getInterests());
         }
 
         user.setUpdatedAt(LocalDateTime.now());
@@ -194,7 +190,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод удаления пользователя из базы данных
-     *
+     * Admin
      * @param userId id пользователя
      */
     @Override

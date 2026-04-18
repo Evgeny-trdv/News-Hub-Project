@@ -21,6 +21,9 @@ public class User implements UserDetails {
     @Column(name = "username", unique = true, nullable = false)
     private String username;
 
+    @Column(name = "display_name", unique = true, nullable = false)
+    private String displayName;
+
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
@@ -105,18 +108,17 @@ public class User implements UserDetails {
     @Column(name = "reset_password_token_expiry")
     private LocalDateTime resetPasswordTokenExpiry;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private Set<Role> roles = new HashSet<>();
+    private Role role;
 
     public User() {
     }
 
-    public User(String username, String email, String passwordHash) {
+    public User(String username, String email, String displayName, String passwordHash, Role role) {
         this.username = username;
         this.email = email;
+        this.displayName = displayName;
         this.passwordHash = passwordHash;
         this.status = UserStatus.ACTIVE;
         this.interests = new HashSet<>();;
@@ -128,7 +130,7 @@ public class User implements UserDetails {
         this.accountNonLocked = true;
         this.credentialsNonExpired = true;
         this.enabled = true;
-        this.roles.add(Role.USER_ROLE);
+        this.role = role;
     }
 
     @PrePersist
@@ -154,9 +156,8 @@ public class User implements UserDetails {
             this.status = UserStatus.ACTIVE;
         }
 
-        if (this.roles == null || this.roles.isEmpty()) {
-            this.roles = new HashSet<>();
-            this.roles.add(Role.USER_ROLE);
+        if (this.role == null || this.role.name().isEmpty()) {
+            this.role = Role.USER;
         }
     }
 
@@ -187,9 +188,7 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.name()))
-                .collect(Collectors.toList());
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
@@ -219,6 +218,14 @@ public class User implements UserDetails {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getPasswordHash() {
@@ -341,12 +348,12 @@ public class User implements UserDetails {
         this.resetPasswordTokenExpiry = resetPasswordTokenExpiry;
     }
 
-    public Set<Role> getRoles() {
-        return roles;
+    public Role getRole() {
+        return role;
     }
 
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     /**
@@ -377,21 +384,11 @@ public class User implements UserDetails {
     }
 
     /**
-     * метод добавления роли для пользователя
+     * метод изменении роли у пользователя
      */
-    public void addRole(Role role) {
-        if (this.roles == null) {
-            this.roles = new HashSet<>();
-            this.roles.add(role);
-        }
-    }
-
-    /**
-     * метод удаления роли у пользователя
-     */
-    public void removeRole(Role role) {
-        if (this.roles != null) {
-            this.roles.remove(role);
+    public void changeRole(Role role) {
+        if (this.role != role) {
+            setRole(role);
         }
     }
 
@@ -399,14 +396,14 @@ public class User implements UserDetails {
      * метод проверки пользователя на указанную роль.
      */
     public boolean hasRole(Role role) {
-        return this.roles != null && this.roles.contains(role);
+        return this.role != null && this.role.equals(role);
     }
 
     /**
      * метод проверки пользователя на права администратора.
      */
     public boolean isAdmin() {
-        return hasRole(Role.ADMIN_ROLE);
+        return hasRole(Role.ADMIN);
     }
 
     /**
