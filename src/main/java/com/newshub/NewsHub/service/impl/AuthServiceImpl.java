@@ -7,12 +7,14 @@ import com.newshub.NewsHub.dto.authDTO.RegisterRequestDto;
 import com.newshub.NewsHub.dto.userDTO.UserResponseDTO;
 import com.newshub.NewsHub.exception.BusinessException;
 import com.newshub.NewsHub.mapper.UserMapper;
+import com.newshub.NewsHub.model.Role;
 import com.newshub.NewsHub.model.User;
 import com.newshub.NewsHub.repository.UserRepository;
 import com.newshub.NewsHub.security.CustomUserDetails;
 import com.newshub.NewsHub.security.CustomUserServiceImpl;
 import com.newshub.NewsHub.security.jwt.JwtTokenProvider;
 import com.newshub.NewsHub.service.AuthService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,14 +43,16 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final CustomUserServiceImpl customUserService;
+    private final RabbitTemplate rabbitTemplate;
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper, CustomUserServiceImpl customUserService) {
+    public AuthServiceImpl(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper, CustomUserServiceImpl customUserService, RabbitTemplate rabbitTemplate) {
         this.authenticationManager = authenticationManager;
         this.jwtTokenProvider = jwtTokenProvider;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userMapper = userMapper;
         this.customUserService = customUserService;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     /**
@@ -99,7 +103,8 @@ public class AuthServiceImpl implements AuthService {
      * 4. Хэшируем пароль
      * 5. Устанавливаем дефолтные значения
      * 6. Сохраняем пользователя
-     * 7. Аутентифицируем и генерируем токены
+     * 7. Отправляем сообщение на почту
+     * 8. Аутентифицируем и генерируем токены
      *
      * @param registerRequestDto DTO с данными для регистрации
      * @return AuthResponseDTO с токенами и информацией о пользователе
@@ -119,20 +124,18 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException("Passwords do not match");
         }
 
-        User user = new User();
-        user.setUsername(registerRequestDto.getUsername());
-        user.setEmail(registerRequestDto.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(registerRequestDto.getPassword()));
-
-        user.setDisplayName(registerRequestDto.getDisplayName() != null
+        User user = new User(
+                registerRequestDto.getUsername(),
+                registerRequestDto.getEmail(),
+                registerRequestDto.getDisplayName() != null
                         ? registerRequestDto.getDisplayName()
-                        : registerRequestDto.getUsername());
-
-        if (registerRequestDto.getInterests() != null && !registerRequestDto.getInterests().isEmpty()) {
-            user.setInterests(registerRequestDto.getInterests());
-        }
+                        : registerRequestDto.getUsername(),
+                passwordEncoder.encode(registerRequestDto.getPassword()),
+                Role.USER);
 
         userRepository.save(user);
+
+        rabbitTemplate.convertAndSend("notification-exchange", "email", registerRequestDto.getEmail());
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
