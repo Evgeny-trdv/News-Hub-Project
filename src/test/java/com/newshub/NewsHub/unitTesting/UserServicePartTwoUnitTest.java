@@ -9,7 +9,7 @@ import com.newshub.NewsHub.model.Role;
 import com.newshub.NewsHub.model.User;
 import com.newshub.NewsHub.model.UserStatus;
 import com.newshub.NewsHub.repository.UserRepository;
-import com.newshub.NewsHub.service.impl.ExternalUserServiceImpl;
+import com.newshub.NewsHub.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  *              updateUser(Long userId, UserCreateUpdateRequestDto userUpdateRequestDTO)
  */
 @ExtendWith(MockitoExtension.class)
-public class YourselfUserServicePartTwoUnitTest {
+public class UserServicePartTwoUnitTest {
 
     private static final String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     private static final Pattern PATTERN = Pattern.compile(EMAIL_REGEX);
@@ -40,7 +40,7 @@ public class YourselfUserServicePartTwoUnitTest {
     private UserMapper userMapper;
 
     @InjectMocks
-    private ExternalUserServiceImpl externalUserService;
+    private UserServiceImpl externalUserService;
 
     private User user1;
     private UserResponseDTO user1Dto;

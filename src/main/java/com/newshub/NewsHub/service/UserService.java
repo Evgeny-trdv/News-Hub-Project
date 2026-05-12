@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Set;
 
-public interface UserToAdminService {
+public interface UserService {
 
     public UserResponseDTO getUser(Long id);
     public UserResponseDTO getUser(String username);

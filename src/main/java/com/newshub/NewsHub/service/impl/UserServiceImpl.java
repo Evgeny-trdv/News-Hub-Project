@@ -8,7 +8,7 @@ import com.newshub.NewsHub.mapper.UserMapper;
 import com.newshub.NewsHub.model.User;
 import com.newshub.NewsHub.model.UserStatus;
 import com.newshub.NewsHub.repository.UserRepository;
-import com.newshub.NewsHub.service.UserToAdminService;
+import com.newshub.NewsHub.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +29,16 @@ import java.util.regex.Pattern;
  * функции администрирования
  */
 @Service
-public class UserToAdminServiceImpl implements UserToAdminService {
+public class UserServiceImpl implements UserService {
 
     private static final String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     private static final Pattern PATTERN = Pattern.compile(EMAIL_REGEX);
-    private static final Logger logger = LoggerFactory.getLogger(UserToAdminServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    public UserToAdminServiceImpl(UserRepository userRepository, UserMapper userMapper) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
     }
@@ -63,7 +63,7 @@ public class UserToAdminServiceImpl implements UserToAdminService {
     }
 
     /**
-     * Метод получения пользователя (DTO) с помощью id
+     * Метод получения пользователя (DTO) с помощью username
      *
      * @param username username пользователя
      * @return UserResponseDTO, DTO пользователя для получения ответа
@@ -132,12 +132,12 @@ public class UserToAdminServiceImpl implements UserToAdminService {
             throw new BusinessException("Username already exists");
         }
 
-        if (userRepository.existsByEmail(userCreateDto.getEmail())) {
-            throw new ResourceNotFoundException("Email already exists" + userCreateDto.getEmail());
+        if (validateEmail(userCreateDto.getEmail())) {
+            throw new BusinessException("Email is not valid" + userCreateDto.getEmail());
         }
 
-        if (!validateEmail(userCreateDto.getEmail())) {
-            throw new BusinessException("Email is not valid" + userCreateDto.getEmail());
+        if (userRepository.existsByEmail(userCreateDto.getEmail())) {
+            throw new BusinessException("Email already exists" + userCreateDto.getEmail());
         }
 
         User savedUser = userMapper.toUserEntity(userCreateDto);
@@ -161,15 +161,15 @@ public class UserToAdminServiceImpl implements UserToAdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
+        if (validateEmail(userUpdateRequestDTO.getEmail())) {
+            throw new BusinessException("Email is not valid" + userUpdateRequestDTO.getEmail());
+        }
+
         if (userUpdateRequestDTO.getEmail() != null &&
-                userRepository.existsByEmail(userUpdateRequestDTO.getEmail()) &&
-                !userUpdateRequestDTO.getEmail().equals(user.getEmail())) {
+                userRepository.existsByEmail(userUpdateRequestDTO.getEmail())) {
             throw new BusinessException("Email already exists" + userUpdateRequestDTO.getEmail());
         }
 
-        if (!validateEmail(userUpdateRequestDTO.getEmail())) {
-            throw new BusinessException("Email is not valid" + userUpdateRequestDTO.getEmail());
-        }
 
         if (userUpdateRequestDTO.getDisplayName() != null) {
             user.setUsername(userUpdateRequestDTO.getDisplayName());
@@ -183,7 +183,6 @@ public class UserToAdminServiceImpl implements UserToAdminService {
             user.setInterests(userUpdateRequestDTO.getInterests());
         }
 
-        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         return userMapper.toUserResponseDTO(user);
     }
@@ -278,7 +277,7 @@ public class UserToAdminServiceImpl implements UserToAdminService {
     }
 
     private boolean validateEmail(String email) {
-        return PATTERN.matcher(email).matches();
+        return !PATTERN.matcher(email).matches();
     }
 
     private String correctStringInterest(String interest) {
