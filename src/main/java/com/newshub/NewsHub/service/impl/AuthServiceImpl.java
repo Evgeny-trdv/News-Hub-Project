@@ -1,9 +1,6 @@
 package com.newshub.NewsHub.service.impl;
 
-import com.newshub.NewsHub.dto.authDTO.AuthRequestDto;
-import com.newshub.NewsHub.dto.authDTO.AuthResponseDto;
-import com.newshub.NewsHub.dto.authDTO.JwtAuthenticationDto;
-import com.newshub.NewsHub.dto.authDTO.RegisterRequestDto;
+import com.newshub.NewsHub.dto.authDTO.*;
 import com.newshub.NewsHub.dto.userDTO.UserResponseDTO;
 import com.newshub.NewsHub.exception.BusinessException;
 import com.newshub.NewsHub.mapper.UserMapper;
@@ -168,13 +165,45 @@ public class AuthServiceImpl implements AuthService {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new BadCredentialsException("User not authenticated");
         }
+        User user = getUser();
+        return userMapper.toUserResponseDTO(user);
+    }
+
+    @Override
+    public void changePassword(ChangePasswordRequest changePassword) {
+        //1. Получаем текущего аутентифицированного пользователя
+        User user = getUser();
+
+        //2. Проверяем старый пароль на совпадение
+        if (!passwordEncoder.matches(changePassword.getOldPassword(), user.getPasswordHash())) {
+            throw new BadCredentialsException("Old password does not match");
+        }
+
+        //3. Проверяем новый пароль и пароль-подтверждение
+        if (!changePassword.getNewPassword().equals(changePassword.getConfirmPassword())) {
+            throw new BadCredentialsException("New password does not match");
+        }
+
+        //4. Хэшируем пароль и сохраняем
+        user.setPasswordHash(passwordEncoder.encode(changePassword.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    private User getUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new BadCredentialsException("User not authenticated");
+        }
+
+        User user;
         Object principal = authentication.getPrincipal();
         if (principal instanceof CustomUserDetails) {
-            User user = ((CustomUserDetails) principal).user();
-            return userMapper.toUserResponseDTO(user);
+            user = ((CustomUserDetails) principal).user();
         } else if (principal instanceof User) {
-            return userMapper.toUserResponseDTO((User) principal);
+            user = (User) principal;
+        } else {
+            throw new BadCredentialsException("Invalid principal type");
         }
-        throw new BadCredentialsException("Invalid principal type");
+        return user;
     }
 }

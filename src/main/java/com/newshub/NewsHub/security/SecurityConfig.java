@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/articles/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/change-password").authenticated()
                         .requestMatchers("/api/v1/users/**", "/api/v1/articles/**", "/likes/**").hasAuthority("ADMIN")
                         .requestMatchers("/likes/article/**").hasRole("USER")
                         .anyRequest().authenticated());

@@ -2,9 +2,9 @@ package com.newshub.NewsHub.controller;
 
 import com.newshub.NewsHub.dto.authDTO.AuthRequestDto;
 import com.newshub.NewsHub.dto.authDTO.AuthResponseDto;
+import com.newshub.NewsHub.dto.authDTO.ChangePasswordRequest;
 import com.newshub.NewsHub.dto.authDTO.RegisterRequestDto;
 import com.newshub.NewsHub.dto.userDTO.UserResponseDTO;
-import com.newshub.NewsHub.model.User;
 import com.newshub.NewsHub.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -38,5 +38,10 @@ public class AuthController {
     @GetMapping("/me")
     public UserResponseDTO me() {
         return authService.getCurrentUser();
+    }
+
+    @PostMapping("/change-password")
+    public void changePassword(@RequestBody ChangePasswordRequest changePassword) {
+        authService.changePassword(changePassword);
     }
 }
