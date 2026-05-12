@@ -50,7 +50,6 @@ public class UserMapper {
         userResponseDTO.setEmail(user.getEmail());
         userResponseDTO.setDisplayName(user.getDisplayName());
         userResponseDTO.setStatus(user.getStatus());
-        userResponseDTO.setCreatedAt(user.getCreatedAt());
 
         if (user.getInterests() != null) {
             userResponseDTO.setInterests(user.getInterests());

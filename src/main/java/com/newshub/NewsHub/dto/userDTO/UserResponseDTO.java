@@ -17,19 +17,17 @@ public class UserResponseDTO {
     private String displayName;
     private UserStatus status;
     private Set<String> interests;
-    private LocalDateTime createdAt;
 
     public UserResponseDTO() {
     }
 
-    public UserResponseDTO(Long id, String username, String email, String displayName, UserStatus status, Set<String> interests, LocalDateTime createdAt) {
+    public UserResponseDTO(Long id, String username, String email, String displayName, UserStatus status, Set<String> interests) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.displayName = displayName;
         this.status = status;
         this.interests = interests;
-        this.createdAt = createdAt;
     }
 
     public Long getId() {
@@ -80,13 +78,6 @@ public class UserResponseDTO {
         this.interests = interests;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 
     @Override
     public boolean equals(Object o) {
