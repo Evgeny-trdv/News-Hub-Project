@@ -7,7 +7,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "Article_likes")
+@Table(name = "Article_likes",
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"user_id", "article_id"}
+        ))
 public class ArticleLike {
 
     @Id

@@ -20,7 +20,7 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
 
     public boolean existsByExternalId(@NotNull String externalId);
 
-    @Query(value = "SELECT * FROM news_articles WHERE category := category", nativeQuery = true)
+    @Query(value = "SELECT * FROM news_articles WHERE category =: category", nativeQuery = true)
     public Page<NewsArticle> findNewsArticlesByCategory(@NotNull @Param("category") String category,
                                                         @NotNull Pageable pageable);
 
@@ -28,13 +28,16 @@ public interface NewsArticleRepository extends JpaRepository<NewsArticle, Long> 
     public Page<NewsArticle> findNewsArticlesByCategories(@NotNull @Param("categories") Set<String> categories,
                                                         @NotNull Pageable pageable);
 
-    @Query(value = "SELECT * FROM news_articles WHERE source_id := sourceId", nativeQuery = true)
+    @Query(value = "SELECT * FROM news_articles WHERE source_id =: sourceId", nativeQuery = true)
     public Page<NewsArticle> findNewsArticlesBySource(@NotNull @Param("sourceId") Long sourceId, @NotNull Pageable pageable);
 
     @Query(value = "SELECT * FROM news_articles WHERE is_popular = TRUE", nativeQuery = true)
     public Page<NewsArticle> findNewsArticlesByIsPopularTrue(Pageable pageable);
 
-    @Query(value = "SELECT * FROM news_article WHERE tags IN : tags ORDER BY published_at DESC", nativeQuery = true)
+    @Query(value = "SELECT na.* FROM news_articles na " +
+            "INNER JOIN article_tag at ON na.id = at.article_id " +
+            "WHERE at.tags IN (:tags) ORDER BY published_at DESC", nativeQuery = true)
     public Page<NewsArticle> findByTags(@NotNull @Param("tags") Set<String> tags, @NotNull Pageable pageable);
 
+    /*"SELECT * FROM news_articles WHERE tags IN : tags ORDER BY published_at DESC"*/
 }

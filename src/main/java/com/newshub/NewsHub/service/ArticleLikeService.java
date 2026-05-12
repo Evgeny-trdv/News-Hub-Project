@@ -8,11 +8,11 @@ public interface ArticleLikeService {
 
     public void removeArticleLike(Long userId, Long articleId);
 
-    public ArticleLikeDTO getArticleLike(String articleId);
+    public ArticleLikeDTO getArticleLike(Long userId, Long articleId);
 
     public int getCountLikeByUser(Long userId);
 
     public int getCountLikeByArticle(Long articleId);
 
-    public void toggleLike(Long userId, Long articleId);
+    public boolean toggleLike(Long userId, Long articleId);
 }

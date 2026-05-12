@@ -1,6 +1,6 @@
 package com.newshub.NewsHub.controller;
 
-import com.newshub.NewsHub.dto.userDTO.UserRequestDTO;
+import com.newshub.NewsHub.dto.userDTO.UserCreateUpdateRequestDto;
 import com.newshub.NewsHub.dto.userDTO.UserResponseDTO;
 import com.newshub.NewsHub.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,8 +52,8 @@ public class UserController {
     @PostMapping
     @Operation(summary = "Create the new user")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponseDTO createUser(@RequestBody UserRequestDTO userRequestDTO) {
-        return userService.createUser(userRequestDTO);
+    public UserResponseDTO createUser(@RequestBody UserCreateUpdateRequestDto userCreateDto) {
+        return userService.createUser(userCreateDto);
     }
 
     @DeleteMapping("/{userId}")
@@ -73,8 +73,8 @@ public class UserController {
 
     @PutMapping("/{userId}")
     @Operation(summary = "Update the user")
-    public UserResponseDTO updateUser(@PathVariable Long userId, @RequestBody UserRequestDTO userRequestDTO) {
-        return userService.updateUser(userId, userRequestDTO);
+    public UserResponseDTO updateUser(@PathVariable Long userId, @RequestBody UserCreateUpdateRequestDto userUpdateRequestDTO) {
+        return userService.updateUser(userId, userUpdateRequestDTO);
     }
 
     @PostMapping("/{userId}/interest")

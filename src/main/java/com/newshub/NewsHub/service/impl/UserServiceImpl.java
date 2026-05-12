@@ -1,6 +1,6 @@
 package com.newshub.NewsHub.service.impl;
 
-import com.newshub.NewsHub.dto.userDTO.UserRequestDTO;
+import com.newshub.NewsHub.dto.userDTO.UserCreateUpdateRequestDto;
 import com.newshub.NewsHub.dto.userDTO.UserResponseDTO;
 import com.newshub.NewsHub.exception.BusinessException;
 import com.newshub.NewsHub.exception.ResourceNotFoundException;
@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 /**
  * Сервис для работы с пользователями (User)
+ * функции администрирования
  */
 @Service
 public class UserServiceImpl implements UserService {
@@ -44,8 +45,10 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения пользователя (DTO) с помощью id
+     *
      * @param userId id пользователя
      * @return UserResponseDTO, DTO пользователя для получения ответа
+     * Admin
      */
     @Override
     public UserResponseDTO getUser(Long userId) {
@@ -60,9 +63,11 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Метод получения пользователя (DTO) с помощью id
+     * Метод получения пользователя (DTO) с помощью username
+     *
      * @param username username пользователя
      * @return UserResponseDTO, DTO пользователя для получения ответа
+     * Admin
      */
     @Override
     public UserResponseDTO getUser(String username) {
@@ -75,7 +80,9 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения списка всех пользователей
+     *
      * @return список пользователей (user)
+     * Admin
      */
     @Override
     public List<UserResponseDTO> getAllUsers() {
@@ -96,8 +103,10 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения списка всех пользователей через пагинацию (по странично)
+     *
      * @param pageable объект постраничного запроса
      * @return список пользователей (user)
+     * Admin
      */
     @Override
     public Page<UserResponseDTO> getAllUsers(Pageable pageable) {
@@ -107,29 +116,31 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод создания (сохранения) пользователя в базу данных
-     * @param userRequestDTO DTO пользователя для создания/обновления
+     *
+     * @param userCreateDto DTO пользователя для создания/обновления
      * @return DTO пользователя для получения ответа
+     * Admin
      */
     @Override
     @Transactional
-    public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
-        if (userRequestDTO == null) {
+    public UserResponseDTO createUser(UserCreateUpdateRequestDto userCreateDto) {
+        if (userCreateDto == null) {
             throw new BusinessException("UserRequestDTO is null");
         }
 
-        if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
-            throw new BusinessException("Username already exists" + userRequestDTO.getUsername());
+        if (userRepository.existsByUsername(userCreateDto.getUsername())) {
+            throw new BusinessException("Username already exists");
         }
 
-        if (!validateEmail(userRequestDTO.getEmail())) {
-            throw new BusinessException("Email is not valid" + userRequestDTO.getEmail());
+        if (validateEmail(userCreateDto.getEmail())) {
+            throw new BusinessException("Email is not valid" + userCreateDto.getEmail());
         }
 
-        if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
-            throw new ResourceNotFoundException("Email already exists" + userRequestDTO.getEmail());
+        if (userRepository.existsByEmail(userCreateDto.getEmail())) {
+            throw new BusinessException("Email already exists" + userCreateDto.getEmail());
         }
 
-        User savedUser = userMapper.toUserEntity(userRequestDTO);
+        User savedUser = userMapper.toUserEntity(userCreateDto);
         userRepository.save(savedUser);
 
         logger.info("User {} saved to database", savedUser);
@@ -139,55 +150,46 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод обновления данных пользователя
+     * Admin
      * @param userId id пользователя
-     * @param userRequestDTO DTO пользователя для создания/обновления
+     * @param userUpdateRequestDTO DTO пользователя для создания/обновления
      * @return DTO пользователя для получения ответа
      */
     @Override
     @Transactional
-    public UserResponseDTO updateUser(Long userId, UserRequestDTO userRequestDTO) {
+    public UserResponseDTO updateUser(Long userId, UserCreateUpdateRequestDto userUpdateRequestDTO) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        if (userRequestDTO.getUsername() != null &&
-                userRepository.existsByUsername(userRequestDTO.getUsername()) &&
-                !userRequestDTO.getUsername().equals(user.getUsername())) {
-            throw new BusinessException("Username already exists" + userRequestDTO.getUsername());
+        if (validateEmail(userUpdateRequestDTO.getEmail())) {
+            throw new BusinessException("Email is not valid" + userUpdateRequestDTO.getEmail());
         }
 
-        if (userRequestDTO.getEmail() != null &&
-                userRepository.existsByEmail(userRequestDTO.getEmail()) &&
-                !userRequestDTO.getEmail().equals(user.getEmail())) {
-            throw new BusinessException("Email already exists" + userRequestDTO.getEmail());
+        if (userUpdateRequestDTO.getEmail() != null &&
+                userRepository.existsByEmail(userUpdateRequestDTO.getEmail())) {
+            throw new BusinessException("Email already exists" + userUpdateRequestDTO.getEmail());
         }
 
-        if (!validateEmail(userRequestDTO.getEmail())) {
-            throw new BusinessException("Email is not valid" + userRequestDTO.getEmail());
+
+        if (userUpdateRequestDTO.getDisplayName() != null) {
+            user.setUsername(userUpdateRequestDTO.getDisplayName());
         }
 
-        if (userRequestDTO.getUsername() != null) {
-            user.setUsername(userRequestDTO.getUsername());
+        if (userUpdateRequestDTO.getEmail() != null) {
+            user.setEmail(userUpdateRequestDTO.getEmail());
         }
 
-        if (userRequestDTO.getEmail() != null) {
-            user.setEmail(userRequestDTO.getEmail());
+        if (userUpdateRequestDTO.getInterests() != null) {
+            user.setInterests(userUpdateRequestDTO.getInterests());
         }
 
-        if (userRequestDTO.getPassword() != null) {
-            user.setPassword(userRequestDTO.getPassword());
-        }
-
-        if (userRequestDTO.getInterests() != null) {
-            user.setInterests(userRequestDTO.getInterests());
-        }
-
-        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         return userMapper.toUserResponseDTO(user);
     }
 
     /**
      * Метод удаления пользователя из базы данных
+     * Admin
      * @param userId id пользователя
      */
     @Override
@@ -203,19 +205,21 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод пометки для удаления пользователя
+     *
      * @param userId id пользователя
      */
     @Override
     @Transactional
     public void deleteUserWithAbilityReturn(Long userId) {
         User userForDeleted = findUserById(userId);
-        userForDeleted.setStatus(UserStatus.DELETED);
+        userForDeleted.setStatus(UserStatus.TIME_DELETED);
         userRepository.save(userForDeleted);
     }
 
     /**
      * Метод добавления новостного интереса пользователя
-     * @param userId id пользователя
+     *
+     * @param userId   id пользователя
      * @param interest новостной интерес
      * @return DTO пользователя для получения ответа
      */
@@ -230,7 +234,8 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод удаления новостного интереса пользователя
-     * @param userId id пользователя
+     *
+     * @param userId   id пользователя
      * @param interest новостной интерес
      * @return DTO пользователя для получения ответа
      */
@@ -245,6 +250,7 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Метод получения множества новостных интересов пользователя
+     *
      * @param userId id пользователя
      * @return DTO пользователя для получения ответа
      */
@@ -260,7 +266,7 @@ public class UserServiceImpl implements UserService {
     @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void deleteUserForScheduled() {
-        List<User> listUsersForDeleted = userRepository.listUserForDeleteWithStatusDeleted();
+        List<User> listUsersForDeleted = userRepository.listUserForDeleteWithStatusTimeDeleted();
 
         for (User user : listUsersForDeleted) {
             logger.info("User {} deleted to database", user.getId());
@@ -271,7 +277,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private boolean validateEmail(String email) {
-        return PATTERN.matcher(email).matches();
+        return !PATTERN.matcher(email).matches();
     }
 
     private String correctStringInterest(String interest) {

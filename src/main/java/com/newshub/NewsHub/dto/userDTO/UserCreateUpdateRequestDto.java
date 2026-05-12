@@ -1,25 +1,31 @@
 package com.newshub.NewsHub.dto.userDTO;
 
+import lombok.Data;
+
 import java.util.Objects;
 import java.util.Set;
 
 /**
- * DTO пользователя для создания или обновления пользователя (для передачи)
+ * DTO для создания/обновления данных пользователя (изменения со стороны администратора)
  */
-public class UserRequestDTO {
+@Data
+public class UserCreateUpdateRequestDto {
 
     private String username;
     private String email;
+    private String displayName;
     private String password;
     private Set<String> interests;
 
-    public UserRequestDTO(String username, String email, String password) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
+    public UserCreateUpdateRequestDto() {
     }
 
-    public UserRequestDTO() {
+    public UserCreateUpdateRequestDto(String username, String email, String displayName, String password, Set<String> interests) {
+        this.username = username;
+        this.email = email;
+        this.displayName = displayName;
+        this.password = password;
+        this.interests = interests;
     }
 
     public String getUsername() {
@@ -36,6 +42,14 @@ public class UserRequestDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getPassword() {
@@ -58,7 +72,7 @@ public class UserRequestDTO {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UserRequestDTO that = (UserRequestDTO) o;
+        UserCreateUpdateRequestDto that = (UserCreateUpdateRequestDto) o;
         return Objects.equals(username, that.username);
     }
 
@@ -69,10 +83,11 @@ public class UserRequestDTO {
 
     @Override
     public String toString() {
-        return "UserRequestDTO{" +
+        return "UserCreateUpdateRequestDto{" +
                 "username='" + username + '\'' +
                 ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", interests=" + interests +
                 '}';
     }
 }
